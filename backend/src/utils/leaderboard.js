@@ -78,14 +78,26 @@ const addScoreInternal = async ({
   const { dailyKey, weeklyKey } = getCurrentTimeKeys();
   const key = getLeaderboardKey(timeRange, dailyKey, weeklyKey);
 
-  // Use Redis transaction to prevent race conditions
-  const multi = redis.multi();
-
-  // Check existing score - we'll compare after the transaction
+  // Check existing score
   const existingScore = await redis.zscore(key, playerId);
+  const isHigherScore = existingScore === null || parseFloat(existingScore) < score;
   
-  // Only update if new score is higher (or no existing score)
-  if (existingScore !== null && parseFloat(existingScore) >= score) {
+  // Always store history for tracking (even if not a new high score)
+  if (storeHistory && timeRange === 'all') {
+    const historyKey = `history:${playerId}`;
+    const historyEntry = JSON.stringify({
+      score,
+      timestamp: Date.now(),
+      metadata,
+      isHighScore: isHigherScore
+    });
+    await redis.lpush(historyKey, historyEntry);
+    await redis.ltrim(historyKey, 0, 99);
+    await redis.expire(historyKey, TTL.HISTORY);
+  }
+
+  // Only update leaderboard if new score is higher (or no existing score)
+  if (!isHigherScore) {
     const rank = await redis.zrevrank(key, playerId);
     return { 
       playerId, 
@@ -94,6 +106,9 @@ const addScoreInternal = async ({
       updated: false 
     };
   }
+
+  // Use Redis transaction for the update
+  const multi = redis.multi();
 
   // Add to sorted set
   multi.zadd(key, score, playerId);
@@ -114,19 +129,6 @@ const addScoreInternal = async ({
     lastUpdated: Date.now().toString()
   });
   multi.expire(playerKey, TTL.PLAYER);
-
-  // Store history (only for 'all' timeRange to avoid duplicates)
-  if (storeHistory && timeRange === 'all') {
-    const historyKey = `history:${playerId}`;
-    const historyEntry = JSON.stringify({
-      score,
-      timestamp: Date.now(),
-      metadata
-    });
-    multi.lpush(historyKey, historyEntry);
-    multi.ltrim(historyKey, 0, 99);
-    multi.expire(historyKey, TTL.HISTORY);
-  }
 
   // Execute transaction
   await multi.exec();
