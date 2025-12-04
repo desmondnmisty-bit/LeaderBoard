@@ -183,16 +183,48 @@ router.post('/reset/:timeRange', asyncHandler(async (req, res) => {
 
     playersAffected = await redis.zcard('leaderboard:all');
     
-    // Get all player keys and delete them
-    const playerKeys = await redis.keys('player:*');
-    if (playerKeys.length > 0) {
-      await redis.del(...playerKeys);
-    }
+    // Use SCAN instead of KEYS to avoid blocking Redis
+    const keysToDelete = [];
     
-    // Delete all leaderboard keys
-    const leaderboardKeys = await redis.keys('leaderboard:*');
-    if (leaderboardKeys.length > 0) {
-      keysDeleted = await redis.del(...leaderboardKeys);
+    // Scan for player keys
+    let cursor = '0';
+    do {
+      const [newCursor, keys] = await redis.scan(cursor, 'MATCH', 'player:*', 'COUNT', 100);
+      cursor = newCursor;
+      keysToDelete.push(...keys);
+    } while (cursor !== '0');
+    
+    // Scan for profile keys
+    cursor = '0';
+    do {
+      const [newCursor, keys] = await redis.scan(cursor, 'MATCH', 'profile:*', 'COUNT', 100);
+      cursor = newCursor;
+      keysToDelete.push(...keys);
+    } while (cursor !== '0');
+    
+    // Scan for history keys
+    cursor = '0';
+    do {
+      const [newCursor, keys] = await redis.scan(cursor, 'MATCH', 'history:*', 'COUNT', 100);
+      cursor = newCursor;
+      keysToDelete.push(...keys);
+    } while (cursor !== '0');
+    
+    // Scan for leaderboard keys
+    cursor = '0';
+    do {
+      const [newCursor, keys] = await redis.scan(cursor, 'MATCH', 'leaderboard:*', 'COUNT', 100);
+      cursor = newCursor;
+      keysToDelete.push(...keys);
+    } while (cursor !== '0');
+    
+    // Delete in batches to avoid blocking
+    if (keysToDelete.length > 0) {
+      const batchSize = 100;
+      for (let i = 0; i < keysToDelete.length; i += batchSize) {
+        const batch = keysToDelete.slice(i, i + batchSize);
+        keysDeleted += await redis.del(...batch);
+      }
     }
   } else {
     return res.status(400).json({

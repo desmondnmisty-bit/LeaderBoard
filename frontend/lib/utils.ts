@@ -4,10 +4,20 @@ export function formatScore(score: number): string {
   return score.toLocaleString();
 }
 
+/**
+ * Format a rank with proper ordinal suffix
+ * Handles edge cases like 11th, 12th, 13th correctly
+ */
 export function formatRank(rank: number): string {
-  const suffixes = ['th', 'st', 'nd', 'rd'];
+  // Handle special cases for 11, 12, 13 (and 111, 112, 113, etc.)
+  const lastTwoDigits = rank % 100;
+  if (lastTwoDigits >= 11 && lastTwoDigits <= 13) {
+    return `${rank}th`;
+  }
+  
   const lastDigit = rank % 10;
-  const suffix = suffixes[lastDigit] || suffixes[0];
+  const suffixes: Record<number, string> = { 1: 'st', 2: 'nd', 3: 'rd' };
+  const suffix = suffixes[lastDigit] || 'th';
   return `${rank}${suffix}`;
 }
 

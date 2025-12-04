@@ -8,7 +8,7 @@ const router = express.Router();
 const { redis } = require('../config/redis');
 const { asyncHandler } = require('../middleware/errorHandler');
 const { getPlayerRank, getCurrentTimeKeys } = require('../utils/leaderboard');
-const { sanitizeInput } = require('../utils/sanitizer');
+const { sanitizeBio, sanitizeString } = require('../utils/sanitizer');
 const validator = require('validator');
 
 // Valid ISO 3166-1 alpha-2 country codes (common ones)
@@ -125,8 +125,15 @@ router.put('/:id/profile', asyncHandler(async (req, res) => {
   if (bio !== undefined) {
     if (bio === null || bio === '') {
       updates.bio = '';
-    } else if (typeof bio === 'string' && bio.length <= 200) {
-      updates.bio = sanitizeInput(bio);
+    } else if (typeof bio === 'string') {
+      const sanitized = sanitizeBio(bio, 200);
+      if (sanitized === null) {
+        return res.status(400).json({
+          success: false,
+          error: { message: 'Bio must be a string under 200 characters', code: 400 }
+        });
+      }
+      updates.bio = sanitized;
     } else {
       return res.status(400).json({
         success: false,

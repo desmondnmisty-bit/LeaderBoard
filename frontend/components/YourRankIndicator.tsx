@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useApi } from '../hooks/useApi';
 import { TimeRange } from '../lib/types';
 
@@ -20,13 +20,7 @@ export default function YourRankIndicator({ playerId, onPlayerIdChange, activeTa
     setInputPlayerId(playerId);
   }, [playerId]);
 
-  useEffect(() => {
-    if (playerId) {
-      fetchRank();
-    }
-  }, [playerId, activeTab]);
-
-  const fetchRank = async () => {
+  const fetchRank = useCallback(async () => {
     if (!playerId) return;
 
     setLoading(true);
@@ -42,7 +36,13 @@ export default function YourRankIndicator({ playerId, onPlayerIdChange, activeTa
     } finally {
       setLoading(false);
     }
-  };
+  }, [playerId, activeTab, getPlayersAround]);
+
+  useEffect(() => {
+    if (playerId) {
+      fetchRank();
+    }
+  }, [playerId, activeTab, fetchRank]);
 
   const handleTrackRank = () => {
     if (inputPlayerId.trim()) {
@@ -51,7 +51,7 @@ export default function YourRankIndicator({ playerId, onPlayerIdChange, activeTa
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       handleTrackRank();
     }
@@ -63,7 +63,7 @@ export default function YourRankIndicator({ playerId, onPlayerIdChange, activeTa
     if (savedPlayerId && !playerId) {
       onPlayerIdChange(savedPlayerId);
     }
-  }, []);
+  }, [playerId, onPlayerIdChange]);
 
   return (
     <div className="bg-white rounded-lg shadow-md p-4">
@@ -75,7 +75,7 @@ export default function YourRankIndicator({ playerId, onPlayerIdChange, activeTa
             type="text"
             value={inputPlayerId}
             onChange={(e) => setInputPlayerId(e.target.value)}
-            onKeyPress={handleKeyPress}
+            onKeyDown={handleKeyDown}
             placeholder="Enter player ID"
             className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus-ring"
           />

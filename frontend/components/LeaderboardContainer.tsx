@@ -45,10 +45,10 @@ export default function LeaderboardContainer() {
 
   useEffect(() => {
     // Join player room when currentPlayerId changes
-    if (currentPlayerId && socket && isConnected) {
+    if (currentPlayerId && isConnected) {
       joinPlayerRoom(currentPlayerId);
     }
-  }, [currentPlayerId, socket, isConnected, joinPlayerRoom]);
+  }, [currentPlayerId, isConnected, joinPlayerRoom]);
 
   return (
     <div className="space-y-6">

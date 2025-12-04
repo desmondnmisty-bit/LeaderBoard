@@ -20,7 +20,7 @@ const scoreSubmissionLimiter = rateLimit({
 // General API rate limiter
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: parseInt(process.env.RATE_LIMIT_API) || 100, // 100 requests per 15 minutes per IP
+  max: parseInt(process.env.RATE_LIMIT_API) || 1000, // 1000 requests per 15 minutes per IP (dev-friendly)
   message: {
     success: false,
     error: {

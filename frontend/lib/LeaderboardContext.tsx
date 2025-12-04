@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo, useRef } from 'react';
 import { Player, TimeRange, LiveUpdateEvent, PlayerUpdateEvent } from './types';
 import { useApi } from '../hooks/useApi';
 
@@ -12,6 +12,7 @@ interface LeaderboardContextType {
   setActiveTab: (tab: TimeRange) => void;
   setCurrentPlayerId: (playerId: string) => void;
   updatePlayers: (newPlayers: Player[], timeRange: TimeRange) => void;
+  refreshPlayers: () => Promise<void>;
   loading: boolean;
   error: string | null;
 }
@@ -24,59 +25,96 @@ export function LeaderboardProvider({ children }: { children: ReactNode }) {
   const [currentPlayerId, setCurrentPlayerId] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Use ref to track mounted state for cleanup
+  const mountedRef = useRef(true);
+  // Use ref to track current abort controller
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const { getTopPlayers } = useApi();
 
-  // Load initial data
-  useEffect(() => {
-    loadPlayers();
-  }, [activeTab]);
+  // Memoized load function
+  const loadPlayers = useCallback(async () => {
+    // Cancel any pending request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
 
-  const loadPlayers = async () => {
     setLoading(true);
     setError(null);
 
     try {
       const result = await getTopPlayers(100, 0, activeTab);
+      
+      // Check if component is still mounted
+      if (!mountedRef.current) return;
+      
       if (result.success) {
         setPlayers(result.data.players || []);
       } else {
         setError(result.error?.message || 'Failed to load players');
       }
     } catch (err) {
+      if (!mountedRef.current) return;
+      if (err instanceof Error && err.name === 'AbortError') return;
       setError('Network error');
     } finally {
-      setLoading(false);
+      if (mountedRef.current) {
+        setLoading(false);
+      }
     }
-  };
+  }, [activeTab, getTopPlayers]);
 
-  const updatePlayers = (newPlayers: Player[], timeRange: TimeRange) => {
-    if (timeRange === activeTab) {
-      // Merge new players with existing ones, updating scores and maintaining order
-      const updatedPlayers = [...players];
+  // Load on mount and when activeTab changes
+  useEffect(() => {
+    loadPlayers();
+  }, [loadPlayers]);
 
+  // Cleanup on unmount
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
+
+  // Memoized update function - doesn't mutate existing objects
+  const updatePlayers = useCallback((newPlayers: Player[], timeRange: TimeRange) => {
+    if (timeRange !== activeTab) return;
+
+    setPlayers(prevPlayers => {
+      // Create a map for quick lookup
+      const playerMap = new Map(prevPlayers.map(p => [p.playerId, p]));
+
+      // Merge new players
       newPlayers.forEach(newPlayer => {
-        const existingIndex = updatedPlayers.findIndex(p => p.playerId === newPlayer.playerId);
-        if (existingIndex >= 0) {
-          updatedPlayers[existingIndex] = { ...updatedPlayers[existingIndex], ...newPlayer };
+        const existing = playerMap.get(newPlayer.playerId);
+        if (existing) {
+          // Create new object instead of mutating
+          playerMap.set(newPlayer.playerId, { ...existing, ...newPlayer });
         } else {
-          updatedPlayers.push(newPlayer);
+          playerMap.set(newPlayer.playerId, newPlayer);
         }
       });
 
-      // Sort by score descending
-      updatedPlayers.sort((a, b) => b.score - a.score);
+      // Sort by score and assign ranks
+      const sorted = Array.from(playerMap.values())
+        .sort((a, b) => b.score - a.score)
+        .map((player, index) => ({
+          ...player,
+          rank: index + 1
+        }));
 
-      // Update ranks
-      updatedPlayers.forEach((player, index) => {
-        player.rank = index + 1;
-      });
+      return sorted;
+    });
+  }, [activeTab]);
 
-      setPlayers(updatedPlayers);
-    }
-  };
-
-  const value: LeaderboardContextType = {
+  // Memoize context value to prevent unnecessary re-renders
+  const value = useMemo<LeaderboardContextType>(() => ({
     players,
     activeTab,
     currentPlayerId,
@@ -84,9 +122,10 @@ export function LeaderboardProvider({ children }: { children: ReactNode }) {
     setActiveTab,
     setCurrentPlayerId,
     updatePlayers,
+    refreshPlayers: loadPlayers,
     loading,
     error,
-  };
+  }), [players, activeTab, currentPlayerId, updatePlayers, loadPlayers, loading, error]);
 
   return (
     <LeaderboardContext.Provider value={value}>

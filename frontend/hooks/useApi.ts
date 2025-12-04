@@ -1,9 +1,14 @@
+import { useCallback, useMemo } from 'react';
 import { ScoreSubmission, ApiResponse, Player, TimeRange } from '../lib/types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
+/**
+ * Custom hook for API calls with memoized functions
+ * to prevent unnecessary re-renders
+ */
 export function useApi() {
-  const submitScore = async (data: ScoreSubmission): Promise<ApiResponse> => {
+  const submitScore = useCallback(async (data: ScoreSubmission): Promise<ApiResponse> => {
     try {
       const response = await fetch(`${API_BASE_URL}/score`, {
         method: 'POST',
@@ -30,9 +35,9 @@ export function useApi() {
         error: { message: 'Network error', code: 500 }
       };
     }
-  };
+  }, []);
 
-  const getTopPlayers = async (
+  const getTopPlayers = useCallback(async (
     limit: number = 100,
     offset: number = 0,
     timeRange: TimeRange = 'all'
@@ -62,9 +67,9 @@ export function useApi() {
         error: { message: 'Network error', code: 500 }
       };
     }
-  };
+  }, []);
 
-  const getPlayerRank = async (playerId: string, timeRange: TimeRange = 'all'): Promise<ApiResponse> => {
+  const getPlayerRank = useCallback(async (playerId: string, timeRange: TimeRange = 'all'): Promise<ApiResponse> => {
     try {
       const params = new URLSearchParams({ timeRange });
       const response = await fetch(`${API_BASE_URL}/around/${playerId}?${params}`);
@@ -85,9 +90,9 @@ export function useApi() {
         error: { message: 'Network error', code: 500 }
       };
     }
-  };
+  }, []);
 
-  const getPlayersAround = async (
+  const getPlayersAround = useCallback(async (
     playerId: string,
     range: number = 5,
     timeRange: TimeRange = 'all'
@@ -116,9 +121,9 @@ export function useApi() {
         error: { message: 'Network error', code: 500 }
       };
     }
-  };
+  }, []);
 
-  const deletePlayer = async (playerId: string): Promise<ApiResponse> => {
+  const deletePlayer = useCallback(async (playerId: string): Promise<ApiResponse> => {
     try {
       const response = await fetch(`${API_BASE_URL}/player/${playerId}`, {
         method: 'DELETE',
@@ -141,13 +146,14 @@ export function useApi() {
         error: { message: 'Network error', code: 500 }
       };
     }
-  };
+  }, []);
 
-  return {
+  // Memoize the return object to maintain stable reference
+  return useMemo(() => ({
     submitScore,
     getTopPlayers,
     getPlayerRank,
     getPlayersAround,
     deletePlayer,
-  };
+  }), [submitScore, getTopPlayers, getPlayerRank, getPlayersAround, deletePlayer]);
 }

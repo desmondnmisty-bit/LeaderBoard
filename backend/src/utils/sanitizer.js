@@ -121,9 +121,32 @@ const sanitizePlayerName = (playerName) => {
   return sanitized;
 };
 
+/**
+ * Validate and sanitize bio text
+ * @param {string} bio - Bio text to validate
+ * @param {number} maxLength - Maximum allowed length
+ * @returns {string|null} - Sanitized bio or null if invalid
+ */
+const sanitizeBio = (bio, maxLength = 200) => {
+  if (typeof bio !== 'string') return null;
+  
+  const sanitized = sanitizeString(bio);
+  
+  if (sanitized.length > maxLength) return null;
+  
+  return sanitized;
+};
+
+/**
+ * Generic input sanitizer (alias for sanitizeString)
+ */
+const sanitizeInput = sanitizeString;
+
 module.exports = {
   sanitizeString,
   sanitizeMetadata,
   sanitizePlayerId,
   sanitizePlayerName,
+  sanitizeBio,
+  sanitizeInput,
 };
