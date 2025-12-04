@@ -27,6 +27,21 @@ export interface PlayerStats {
   totalGames?: number;
 }
 
+export interface ScoreHistoryEntry {
+  index: number;
+  score: number;
+  timestamp: number;
+  date: string;
+  metadata: Record<string, any>;
+}
+
+export interface ScoreHistory {
+  playerId: string;
+  playerName: string;
+  history: ScoreHistoryEntry[];
+  total: number;
+}
+
 export type TimeRange = 'all' | 'daily' | 'weekly';
 
 export interface ApiResponse {

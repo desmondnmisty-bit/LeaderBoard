@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import PlayerAvatar from './PlayerAvatar';
 import CountryFlag from './CountryFlag';
+import ScoreHistoryChart from './ScoreHistoryChart';
 import { PlayerProfile, PlayerStats } from '@/lib/types';
 
 interface PlayerProfileModalProps {
@@ -72,7 +73,7 @@ export default function PlayerProfileModal({ playerId, onClose }: PlayerProfileM
       onClick={onClose}
     >
       <div 
-        className="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl max-w-md w-full mx-4 overflow-hidden"
+        className="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl max-w-lg w-full mx-4 overflow-hidden max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -149,6 +150,14 @@ export default function PlayerProfileModal({ playerId, onClose }: PlayerProfileM
                     rank={stats?.daily?.rank}
                     score={stats?.daily?.score}
                   />
+                </div>
+              </div>
+
+              {/* Score History Chart */}
+              <div className="mb-6">
+                <h3 className="text-sm font-medium text-gray-400 mb-3">Score History</h3>
+                <div className="bg-gray-800 rounded-lg p-4">
+                  <ScoreHistoryChart playerId={playerId} height={180} />
                 </div>
               </div>
 

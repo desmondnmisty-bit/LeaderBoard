@@ -99,6 +99,21 @@ const addScore = async (playerId, playerName, score, metadata = {}, timeRange = 
       // Don't fail the score submission if publish fails
     }
 
+    // Store score in history (only for 'all' timeRange to avoid duplicates)
+    if (timeRange === 'all') {
+      const historyKey = `history:${playerId}`;
+      const historyEntry = JSON.stringify({
+        score,
+        timestamp: Date.now(),
+        metadata
+      });
+      // Push to list and trim to keep only last 100 entries
+      await redis.lpush(historyKey, historyEntry);
+      await redis.ltrim(historyKey, 0, 99);
+      // Set TTL for history (90 days)
+      await redis.expire(historyKey, 90 * 24 * 60 * 60);
+    }
+
     // Get rank
     const rank = await redis.zrevrank(key, playerId);
     return { playerId, score, rank: rank + 1 }; // 1-indexed

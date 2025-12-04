@@ -251,4 +251,67 @@ router.get('/:id/stats', asyncHandler(async (req, res) => {
   });
 }));
 
+/**
+ * GET /player/:id/history
+ * Get player score history
+ */
+router.get('/:id/history', asyncHandler(async (req, res) => {
+  const playerId = req.params.id;
+  const limit = Math.min(parseInt(req.query.limit) || 50, 100);
+  const offset = parseInt(req.query.offset) || 0;
+
+  if (!playerId || playerId.length < 1 || playerId.length > 100) {
+    return res.status(400).json({
+      success: false,
+      error: { message: 'Invalid player ID', code: 400 }
+    });
+  }
+
+  const playerKey = `player:${playerId}`;
+  const playerData = await redis.hgetall(playerKey);
+
+  if (!playerData || !playerData.name) {
+    return res.status(404).json({
+      success: false,
+      error: { message: 'Player not found', code: 404 }
+    });
+  }
+
+  const historyKey = `history:${playerId}`;
+  
+  // Get history entries (stored newest first)
+  const historyRaw = await redis.lrange(historyKey, offset, offset + limit - 1);
+  const totalEntries = await redis.llen(historyKey);
+
+  const history = historyRaw.map((entry, index) => {
+    try {
+      const parsed = JSON.parse(entry);
+      return {
+        index: offset + index,
+        score: parsed.score,
+        timestamp: parsed.timestamp,
+        date: new Date(parsed.timestamp).toISOString(),
+        metadata: parsed.metadata || {}
+      };
+    } catch {
+      return null;
+    }
+  }).filter(Boolean);
+
+  // Reverse to show oldest first for charting
+  const chronological = [...history].reverse();
+
+  res.json({
+    success: true,
+    data: {
+      playerId,
+      playerName: playerData.name,
+      history: chronological,
+      total: totalEntries,
+      limit,
+      offset
+    }
+  });
+}));
+
 module.exports = router;

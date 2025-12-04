@@ -208,7 +208,10 @@ app.get('/all', asyncHandler(async (req, res) => {
   });
 }));
 
-// Delete player (admin)
+// Player profile routes (must be before the DELETE /player/:id route)
+app.use('/player', playerRouter);
+
+// Delete player (admin) - specific route after the router
 app.delete('/player/:id', validatePlayerId, optionalAuth, asyncHandler(async (req, res) => {
   const playerId = req.playerId;
 
@@ -228,9 +231,6 @@ app.delete('/player/:id', validatePlayerId, optionalAuth, asyncHandler(async (re
 
 // Admin routes
 app.use('/admin', adminRouter);
-
-// Player profile routes
-app.use('/player', playerRouter);
 
 // 404 handler
 app.use((req, res) => {
