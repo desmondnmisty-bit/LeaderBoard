@@ -1,0 +1,32 @@
+[build]
+builder = "nixpacks"
+
+# Railway automatically sets REDIS_URL environment variable for the backend service
+# when Redis service is linked. Ensure REDIS_URL is configured in Railway dashboard if needed.
+
+[[services]]
+name = "redis"
+source = { image = "redis:7-alpine" }
+restartPolicyType = "ON_FAILURE"
+
+[[services]]
+name = "backend"
+buildPath = "./backend"
+startCommand = "npm start"
+healthcheckPath = "/health"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+
+[services.dependencies]
+  services = ["redis"]
+
+[[services]]
+name = "frontend"
+buildPath = "./frontend"
+startCommand = "npm start"
+healthcheckPath = "/"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+
+[services.dependencies]
+  services = ["backend"]
