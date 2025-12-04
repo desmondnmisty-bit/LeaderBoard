@@ -136,19 +136,31 @@ const getTopPlayers = async (limit, offset = 0, timeRange = 'all') => {
       
       const playerDataResults = await pipeline.exec();
       
+      // Also fetch profile data
+      const profilePipeline = redis.pipeline();
+      for (const playerId of playerIds) {
+        profilePipeline.hgetall(`profile:${playerId}`);
+      }
+      const profileDataResults = await profilePipeline.exec();
+      
       for (let i = 0; i < playerIds.length; i++) {
         const playerId = playerIds[i];
         const score = parseFloat(players[i * 2 + 1]);
         const rank = offset + i + 1;
         
         const [err, playerData] = playerDataResults[i];
+        const [profileErr, profileData] = profileDataResults[i];
+        
         if (!err && playerData && playerData.name) {
           result.push({
             rank,
             playerId,
             playerName: playerData.name,
             score,
-            metadata: playerData.metadata ? JSON.parse(playerData.metadata) : {}
+            metadata: playerData.metadata ? JSON.parse(playerData.metadata) : {},
+            // Include profile data if available
+            avatarUrl: (!profileErr && profileData?.avatarUrl) || null,
+            country: (!profileErr && profileData?.country) || null
           });
         }
       }

@@ -43,6 +43,9 @@ const { startDemoMode, stopDemoMode } = require('./demo');
 // Admin routes
 const { router: adminRouter, addActivity } = require('./routes/admin');
 
+// Player profile routes
+const playerRouter = require('./routes/player');
+
 const app = express();
 const server = http.createServer(app);
 
@@ -225,6 +228,9 @@ app.delete('/player/:id', validatePlayerId, optionalAuth, asyncHandler(async (re
 
 // Admin routes
 app.use('/admin', adminRouter);
+
+// Player profile routes
+app.use('/player', playerRouter);
 
 // 404 handler
 app.use((req, res) => {

@@ -3,6 +3,9 @@
 import { useState, useMemo } from 'react';
 import { Player, TimeRange } from '../lib/types';
 import { formatScore, formatRank, getRankColor } from '../lib/utils';
+import PlayerAvatar from './PlayerAvatar';
+import CountryFlag from './CountryFlag';
+import PlayerProfileModal from './PlayerProfileModal';
 
 interface LeaderboardTableProps {
   players: Player[];
@@ -21,6 +24,7 @@ export default function LeaderboardTable({
 }: LeaderboardTableProps) {
   const [pageSize, setPageSize] = useState(25);
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
 
   // Filter players based on search query
   const filteredPlayers = useMemo(() => {
@@ -97,13 +101,16 @@ export default function LeaderboardTable({
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
                 Rank
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Player
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
+                Country
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
                 Score
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -115,9 +122,10 @@ export default function LeaderboardTable({
             {paginatedPlayers.map((player) => (
               <tr
                 key={player.playerId}
-                className={`hover:bg-gray-50 transition-colors ${
+                className={`hover:bg-gray-50 transition-colors cursor-pointer ${
                   player.playerId === currentPlayerId ? 'bg-accent/5 border-l-4 border-accent' : ''
                 }`}
+                onClick={() => setSelectedPlayerId(player.playerId)}
               >
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
@@ -127,7 +135,12 @@ export default function LeaderboardTable({
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center">
+                  <div className="flex items-center gap-3">
+                    <PlayerAvatar 
+                      avatarUrl={player.avatarUrl}
+                      playerName={player.playerName}
+                      size="md"
+                    />
                     <div>
                       <div className="text-sm font-medium text-gray-900">
                         {player.playerName}
@@ -139,11 +152,14 @@ export default function LeaderboardTable({
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
+                  <CountryFlag country={player.country} size="md" />
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm font-medium text-gray-900">
                     {formatScore(player.score)}
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500" onClick={(e) => e.stopPropagation()}>
                   {player.metadata && Object.keys(player.metadata).length > 0 ? (
                     <details className="cursor-pointer">
                       <summary className="hover:text-gray-700">
@@ -201,6 +217,14 @@ export default function LeaderboardTable({
           </button>
         </div>
       </div>
+
+      {/* Player Profile Modal */}
+      {selectedPlayerId && (
+        <PlayerProfileModal 
+          playerId={selectedPlayerId} 
+          onClose={() => setSelectedPlayerId(null)} 
+        />
+      )}
     </div>
   );
 }

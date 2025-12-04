@@ -4,6 +4,27 @@ export interface Player {
   playerName: string;
   score: number;
   metadata: Record<string, any>;
+  avatarUrl?: string | null;
+  country?: string | null;
+}
+
+export interface PlayerProfile {
+  playerId: string;
+  playerName: string;
+  avatarUrl?: string | null;
+  bio?: string | null;
+  country?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface PlayerStats {
+  playerId: string;
+  allTime: { rank: number; score: number } | null;
+  daily: { rank: number; score: number } | null;
+  weekly: { rank: number; score: number } | null;
+  bestRank: number | null;
+  totalGames?: number;
 }
 
 export type TimeRange = 'all' | 'daily' | 'weekly';
