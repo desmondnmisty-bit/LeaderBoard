@@ -78,40 +78,32 @@ const addScoreInternal = async ({
   const { dailyKey, weeklyKey } = getCurrentTimeKeys();
   const key = getLeaderboardKey(timeRange, dailyKey, weeklyKey);
 
-  // Check existing score
+  // Get existing score and ADD to it (cumulative scoring)
   const existingScore = await redis.zscore(key, playerId);
-  const isHigherScore = existingScore === null || parseFloat(existingScore) < score;
+  const currentScore = existingScore ? parseFloat(existingScore) : 0;
+  const newTotalScore = currentScore + score;
   
-  // Always store history for tracking (even if not a new high score)
+  // Always store history for tracking
   if (storeHistory && timeRange === 'all') {
     const historyKey = `history:${playerId}`;
     const historyEntry = JSON.stringify({
-      score,
+      scoreAdded: score,
+      totalScore: newTotalScore,
+      previousScore: currentScore,
       timestamp: Date.now(),
-      metadata,
-      isHighScore: isHigherScore
+      metadata
     });
     await redis.lpush(historyKey, historyEntry);
     await redis.ltrim(historyKey, 0, 99);
     await redis.expire(historyKey, TTL.HISTORY);
   }
 
-  // Only update leaderboard if new score is higher (or no existing score)
-  if (!isHigherScore) {
-    const rank = await redis.zrevrank(key, playerId);
-    return { 
-      playerId, 
-      score: parseFloat(existingScore), 
-      rank: rank !== null ? rank + 1 : null, 
-      updated: false 
-    };
-  }
-
+  // Update the leaderboard with the NEW TOTAL score
   // Use Redis transaction for the update
   const multi = redis.multi();
 
-  // Add to sorted set
-  multi.zadd(key, score, playerId);
+  // Add to sorted set with cumulative score
+  multi.zadd(key, newTotalScore, playerId);
 
   // Set TTL for time-based leaderboards
   if (timeRange === 'daily') {
@@ -124,7 +116,7 @@ const addScoreInternal = async ({
   const playerKey = `player:${playerId}`;
   multi.hset(playerKey, {
     name: playerName,
-    score: score.toString(),
+    score: newTotalScore.toString(),
     metadata: JSON.stringify(metadata),
     lastUpdated: Date.now().toString()
   });
@@ -146,7 +138,7 @@ const addScoreInternal = async ({
 
   // Get final rank
   const rank = await redis.zrevrank(key, playerId);
-  return { playerId, score, rank: rank !== null ? rank + 1 : null, updated: true };
+  return { playerId, score: newTotalScore, scoreAdded: score, previousScore: currentScore, rank: rank !== null ? rank + 1 : null, updated: true };
 };
 
 // ============================================

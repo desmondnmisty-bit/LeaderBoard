@@ -52,7 +52,9 @@ export default function ScoreHistoryChart({ playerId, height = 200 }: ScoreHisto
       }
     };
 
-    fetchHistory();
+    if (playerId) {
+      fetchHistory();
+    }
   }, [playerId]);
 
   if (loading) {
@@ -79,15 +81,16 @@ export default function ScoreHistoryChart({ playerId, height = 200 }: ScoreHisto
     );
   }
 
-  // Format data for chart
-  const chartData = history.map((entry, idx) => ({
+  // Format data for chart - use totalScore from new format, fallback to score for old entries
+  const chartData = history.map((entry: any, idx) => ({
     name: formatDate(entry.timestamp),
-    score: entry.score,
+    score: entry.totalScore ?? entry.score,
+    scoreAdded: entry.scoreAdded,
     index: idx
   }));
 
-  // Calculate stats
-  const scores = history.map(h => h.score);
+  // Calculate stats using total scores
+  const scores = chartData.map(h => h.score);
   const maxScore = Math.max(...scores);
   const minScore = Math.min(...scores);
   const avgScore = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);

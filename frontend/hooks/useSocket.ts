@@ -81,6 +81,12 @@ function initializeSocket() {
   notifyListeners();
 }
 
+// Cached server snapshot to avoid infinite loop
+const serverSnapshot: SocketState = { socket: null, isConnected: false };
+function getServerSnapshot(): SocketState {
+  return serverSnapshot;
+}
+
 // ============================================
 // HOOK - Uses singleton, no new connections
 // ============================================
@@ -89,7 +95,7 @@ export function useSocket() {
   const state = useSyncExternalStore(
     subscribe,
     getSocketState,
-    () => ({ socket: null, isConnected: false }) // Server snapshot
+    getServerSnapshot
   );
 
   const joinPlayerRoom = useCallback((playerId: string) => {

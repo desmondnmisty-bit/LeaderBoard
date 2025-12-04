@@ -2,7 +2,7 @@
 module.exports = {
   // Score constraints
   DEFAULT_MIN_SCORE: 0,
-  DEFAULT_MAX_SCORE: 1000000,
+  DEFAULT_MAX_SCORE: Number.MAX_SAFE_INTEGER,
   
   // Pagination
   DEFAULT_PAGE_LIMIT: 100,

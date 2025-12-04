@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useApi } from '../hooks/useApi';
+import { useLeaderboard } from '../lib/LeaderboardContext';
 
 export default function ScoreSubmissionForm() {
   const [playerName, setPlayerName] = useState('');
@@ -11,6 +12,7 @@ export default function ScoreSubmissionForm() {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const { submitScore } = useApi();
+  const { refreshPlayers } = useLeaderboard();
 
   const validateForm = () => {
     if (!playerName.trim()) return 'Player name is required';
@@ -42,6 +44,8 @@ export default function ScoreSubmissionForm() {
 
     try {
       const playerId = playerName.toLowerCase().replace(/\s+/g, '_');
+      console.log('[ScoreSubmission] Submitting:', { playerId, playerName: playerName.trim(), score: Number(score) });
+      
       const result = await submitScore({
         playerId,
         playerName: playerName.trim(),
@@ -49,11 +53,17 @@ export default function ScoreSubmissionForm() {
         metadata: metadata ? JSON.parse(metadata) : undefined,
       });
 
+      console.log('[ScoreSubmission] Result:', result);
+
       if (result.success) {
         setMessage({ type: 'success', text: 'Score submitted successfully!' });
         setPlayerName('');
         setScore('');
         setMetadata('');
+        // Refresh the leaderboard to show updated scores
+        console.log('[ScoreSubmission] Refreshing players...');
+        await refreshPlayers();
+        console.log('[ScoreSubmission] Refresh complete');
       } else {
         setMessage({ type: 'error', text: result.error?.message || 'Failed to submit score' });
       }
