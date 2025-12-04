@@ -296,7 +296,7 @@ export default function AdminDashboard() {
             </div>
             <button
               onClick={handleLogin}
-              disabled={loading || !adminKey}
+              disabled={loading}
               className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white font-medium py-2 rounded transition-colors"
             >
               {loading ? 'Authenticating...' : 'Login'}
