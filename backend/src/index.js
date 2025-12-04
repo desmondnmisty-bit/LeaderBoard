@@ -40,6 +40,9 @@ const { startLiveUpdates, stopLiveUpdates } = require('./socket/liveUpdates');
 const { initializePubSub, closePubSub } = require('./socket/pubsub');
 const { startDemoMode, stopDemoMode } = require('./demo');
 
+// Admin routes
+const { router: adminRouter, addActivity } = require('./routes/admin');
+
 const app = express();
 const server = http.createServer(app);
 
@@ -80,6 +83,15 @@ app.post('/score', scoreSubmissionLimiter, validateScoreSubmission, asyncHandler
   const result = await addScore(playerId, playerName, score, metadata, 'all');
   await addScoreWithoutPublish(playerId, playerName, score, metadata, 'daily');
   await addScoreWithoutPublish(playerId, playerName, score, metadata, 'weekly');
+
+  // Log activity for admin dashboard
+  addActivity({
+    type: 'score',
+    playerId,
+    playerName,
+    score,
+    rank: result.rank
+  });
 
   res.status(201).json({
     success: true,
@@ -210,6 +222,9 @@ app.delete('/player/:id', validatePlayerId, optionalAuth, asyncHandler(async (re
     message: 'Player deleted'
   });
 }));
+
+// Admin routes
+app.use('/admin', adminRouter);
 
 // 404 handler
 app.use((req, res) => {
