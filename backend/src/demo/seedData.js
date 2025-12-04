@@ -28,9 +28,8 @@ const seedLeaderboard = async () => {
     const player = players[i];
 
     try {
-      await addScoreWithoutPublish(player.id, player.name, player.score, player.metadata, 'all');
-      await addScoreWithoutPublish(player.id, player.name, player.score, player.metadata, 'daily');
-      await addScoreWithoutPublish(player.id, player.name, player.score, player.metadata, 'weekly');
+      // Only call once - it handles all time ranges internally
+      await addScoreWithoutPublish(player.id, player.name, player.score, player.metadata);
 
       if ((i + 1) % 25 === 0) {
         console.log(`Seeded ${i + 1}/${players.length} players...`);

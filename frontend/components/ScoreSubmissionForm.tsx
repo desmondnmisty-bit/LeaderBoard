@@ -43,8 +43,13 @@ export default function ScoreSubmissionForm() {
     setMessage(null);
 
     try {
-      const playerId = playerName.toLowerCase().replace(/\s+/g, '_');
-      console.log('[ScoreSubmission] Submitting:', { playerId, playerName: playerName.trim(), score: Number(score) });
+      // Normalize playerId: lowercase, replace spaces/special chars with hyphens, remove duplicates
+      const playerId = playerName
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, '-')  // Replace non-alphanumeric with hyphens
+        .replace(/^-+|-+$/g, '')       // Remove leading/trailing hyphens
+        .replace(/-+/g, '-');          // Collapse multiple hyphens
       
       const result = await submitScore({
         playerId,
@@ -53,15 +58,12 @@ export default function ScoreSubmissionForm() {
         metadata: metadata ? JSON.parse(metadata) : undefined,
       });
 
-      console.log('[ScoreSubmission] Result:', result);
-
       if (result.success) {
-        setMessage({ type: 'success', text: 'Score submitted successfully!' });
+        setMessage({ type: 'success', text: `Score +${Number(score).toLocaleString()} added! New total: ${result.data?.score?.toLocaleString() || 'N/A'}` });
         setPlayerName('');
         setScore('');
         setMetadata('');
         // Refresh the leaderboard to show updated scores
-        console.log('[ScoreSubmission] Refreshing players...');
         await refreshPlayers();
         console.log('[ScoreSubmission] Refresh complete');
       } else {

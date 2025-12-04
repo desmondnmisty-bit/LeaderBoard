@@ -235,23 +235,23 @@ router.get('/:id/stats', asyncHandler(async (req, res) => {
       playerId,
       playerName: playerData.name,
       stats: {
-        all: {
+        allTime: {
           score: allScore ? parseFloat(allScore) : null,
           rank: allRank?.rank || null,
           totalPlayers: allTotal,
-          percentile: allRank ? Math.round((1 - (allRank.rank / allTotal)) * 100) : null
+          percentile: (allRank && allTotal > 0) ? Math.round(((allTotal - allRank.rank + 1) / allTotal) * 100) : null
         },
         daily: {
           score: dailyScore ? parseFloat(dailyScore) : null,
           rank: dailyRank?.rank || null,
           totalPlayers: dailyTotal,
-          percentile: dailyRank ? Math.round((1 - (dailyRank.rank / dailyTotal)) * 100) : null
+          percentile: (dailyRank && dailyTotal > 0) ? Math.round(((dailyTotal - dailyRank.rank + 1) / dailyTotal) * 100) : null
         },
         weekly: {
           score: weeklyScore ? parseFloat(weeklyScore) : null,
           rank: weeklyRank?.rank || null,
           totalPlayers: weeklyTotal,
-          percentile: weeklyRank ? Math.round((1 - (weeklyRank.rank / weeklyTotal)) * 100) : null
+          percentile: (weeklyRank && weeklyTotal > 0) ? Math.round(((weeklyTotal - weeklyRank.rank + 1) / weeklyTotal) * 100) : null
         }
       }
     }
@@ -295,7 +295,10 @@ router.get('/:id/history', asyncHandler(async (req, res) => {
       const parsed = JSON.parse(entry);
       return {
         index: offset + index,
-        score: parsed.score,
+        // Support both old format (score) and new format (totalScore)
+        score: parsed.totalScore ?? parsed.score,
+        scoreAdded: parsed.scoreAdded,
+        previousScore: parsed.previousScore,
         timestamp: parsed.timestamp,
         date: new Date(parsed.timestamp).toISOString(),
         metadata: parsed.metadata || {}

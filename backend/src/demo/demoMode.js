@@ -59,9 +59,8 @@ const startDemoMode = async () => {
         const metadata = getRandomMetadata();
         console.log(`Demo mode: Adding score ${score} for ${player.name}`);
 
-        await addScore(player.id, player.name, score, metadata, 'all');
-        await addScore(player.id, player.name, score, metadata, 'daily');
-        await addScore(player.id, player.name, score, metadata, 'weekly');
+        // Only call once - addScore handles all time ranges internally
+        await addScore(player.id, player.name, score, metadata);
       }
       console.log('Demo mode: Score generation complete');
     } catch (error) {

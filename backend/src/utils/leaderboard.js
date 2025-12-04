@@ -51,13 +51,12 @@ const setLeaderboardTTL = async (key, timeRange) => {
 // ============================================
 
 /**
- * Add or update a player's score
+ * Add or update a player's score - updates ALL time ranges at once
  * @param {Object} options
  * @param {string} options.playerId - Player identifier
  * @param {string} options.playerName - Display name
- * @param {number} options.score - Score value
+ * @param {number} options.score - Score value to ADD to current totals
  * @param {Object} [options.metadata={}] - Additional player data
- * @param {string} [options.timeRange='all'] - Time range: 'all', 'daily', 'weekly'
  * @param {boolean} [options.publish=true] - Publish update via Redis pub/sub
  * @param {boolean} [options.storeHistory=true] - Store in history list
  * @returns {Promise<{playerId, score, rank, updated}>}
@@ -67,7 +66,6 @@ const addScoreInternal = async ({
   playerName, 
   score, 
   metadata = {}, 
-  timeRange = 'all',
   publish = true,
   storeHistory = true
 }) => {
@@ -76,20 +74,32 @@ const addScoreInternal = async ({
   }
 
   const { dailyKey, weeklyKey } = getCurrentTimeKeys();
-  const key = getLeaderboardKey(timeRange, dailyKey, weeklyKey);
+  const allKey = 'leaderboard:all';
+  const dailyKeyFull = `leaderboard:daily:${dailyKey}`;
+  const weeklyKeyFull = `leaderboard:weekly:${weeklyKey}`;
 
-  // Get existing score and ADD to it (cumulative scoring)
-  const existingScore = await redis.zscore(key, playerId);
-  const currentScore = existingScore ? parseFloat(existingScore) : 0;
-  const newTotalScore = currentScore + score;
+  // Get existing scores from ALL leaderboards
+  const [existingAll, existingDaily, existingWeekly] = await Promise.all([
+    redis.zscore(allKey, playerId),
+    redis.zscore(dailyKeyFull, playerId),
+    redis.zscore(weeklyKeyFull, playerId)
+  ]);
+
+  const currentScoreAll = existingAll ? parseFloat(existingAll) : 0;
+  const currentScoreDaily = existingDaily ? parseFloat(existingDaily) : 0;
+  const currentScoreWeekly = existingWeekly ? parseFloat(existingWeekly) : 0;
+
+  const newTotalAll = currentScoreAll + score;
+  const newTotalDaily = currentScoreDaily + score;
+  const newTotalWeekly = currentScoreWeekly + score;
   
-  // Always store history for tracking
-  if (storeHistory && timeRange === 'all') {
+  // Store history for tracking
+  if (storeHistory) {
     const historyKey = `history:${playerId}`;
     const historyEntry = JSON.stringify({
       scoreAdded: score,
-      totalScore: newTotalScore,
-      previousScore: currentScore,
+      totalScore: newTotalAll,
+      previousScore: currentScoreAll,
       timestamp: Date.now(),
       metadata
     });
@@ -98,25 +108,23 @@ const addScoreInternal = async ({
     await redis.expire(historyKey, TTL.HISTORY);
   }
 
-  // Update the leaderboard with the NEW TOTAL score
-  // Use Redis transaction for the update
+  // Update ALL leaderboards in a single transaction
   const multi = redis.multi();
 
-  // Add to sorted set with cumulative score
-  multi.zadd(key, newTotalScore, playerId);
+  // Add to all three sorted sets
+  multi.zadd(allKey, newTotalAll, playerId);
+  multi.zadd(dailyKeyFull, newTotalDaily, playerId);
+  multi.zadd(weeklyKeyFull, newTotalWeekly, playerId);
 
   // Set TTL for time-based leaderboards
-  if (timeRange === 'daily') {
-    multi.expire(key, TTL.DAILY);
-  } else if (timeRange === 'weekly') {
-    multi.expire(key, TTL.WEEKLY);
-  }
+  multi.expire(dailyKeyFull, TTL.DAILY);
+  multi.expire(weeklyKeyFull, TTL.WEEKLY);
 
-  // Store player data
+  // Store player data (use all-time score as the main score)
   const playerKey = `player:${playerId}`;
   multi.hset(playerKey, {
     name: playerName,
-    score: newTotalScore.toString(),
+    score: newTotalAll.toString(),
     metadata: JSON.stringify(metadata),
     lastUpdated: Date.now().toString()
   });
@@ -125,32 +133,44 @@ const addScoreInternal = async ({
   // Execute transaction
   await multi.exec();
 
-  // Publish score update (outside transaction, non-critical)
+  // Publish score update
   if (publish) {
     try {
       await redis.publish('score-update', JSON.stringify({ 
-        playerId, playerName, score, timeRange 
+        playerId, 
+        playerName, 
+        score: newTotalAll, 
+        scoreAdded: score,
+        daily: newTotalDaily,
+        weekly: newTotalWeekly
       }));
     } catch (publishError) {
       console.error('Failed to publish score update:', publishError.message);
     }
   }
 
-  // Get final rank
-  const rank = await redis.zrevrank(key, playerId);
-  return { playerId, score: newTotalScore, scoreAdded: score, previousScore: currentScore, rank: rank !== null ? rank + 1 : null, updated: true };
+  // Get final rank from all-time leaderboard
+  const rank = await redis.zrevrank(allKey, playerId);
+  return { 
+    playerId, 
+    score: newTotalAll, 
+    scoreAdded: score, 
+    previousScore: currentScoreAll, 
+    rank: rank !== null ? rank + 1 : null, 
+    updated: true 
+  };
 };
 
 // ============================================
 // PUBLIC API (simple wrappers around internal)
 // ============================================
 
-const addScore = async (playerId, playerName, score, metadata = {}, timeRange = 'all') => {
-  return addScoreInternal({ playerId, playerName, score, metadata, timeRange, publish: true, storeHistory: true });
+const addScore = async (playerId, playerName, score, metadata = {}) => {
+  return addScoreInternal({ playerId, playerName, score, metadata, publish: true, storeHistory: true });
 };
 
-const addScoreWithoutPublish = async (playerId, playerName, score, metadata = {}, timeRange = 'all') => {
-  return addScoreInternal({ playerId, playerName, score, metadata, timeRange, publish: false, storeHistory: false });
+const addScoreWithoutPublish = async (playerId, playerName, score, metadata = {}) => {
+  return addScoreInternal({ playerId, playerName, score, metadata, publish: false, storeHistory: false });
 };
 
 // ============================================
@@ -178,11 +198,10 @@ const getTopPlayers = async (limit, offset = 0, timeRange = 'all') => {
       playerIds.push(players[i]);
     }
 
-    // Batch fetch player and profile data
+    // Batch fetch player data (profile fields are stored in same key)
     const pipeline = redis.pipeline();
     for (const id of playerIds) {
       pipeline.hgetall(`player:${id}`);
-      pipeline.hgetall(`profile:${id}`);
     }
     const results = await pipeline.exec();
 
@@ -193,8 +212,7 @@ const getTopPlayers = async (limit, offset = 0, timeRange = 'all') => {
       const score = parseFloat(players[i * 2 + 1]);
       const rank = offset + i + 1;
 
-      const [playerErr, playerData] = results[i * 2];
-      const [profileErr, profileData] = results[i * 2 + 1];
+      const [playerErr, playerData] = results[i];
 
       if (!playerErr && playerData && playerData.name) {
         result.push({
@@ -203,8 +221,8 @@ const getTopPlayers = async (limit, offset = 0, timeRange = 'all') => {
           playerName: playerData.name,
           score,
           metadata: playerData.metadata ? JSON.parse(playerData.metadata) : {},
-          avatarUrl: (!profileErr && profileData?.avatarUrl) || null,
-          country: (!profileErr && profileData?.country) || null
+          avatarUrl: playerData.avatarUrl || null,
+          country: playerData.country || null
         });
       }
     }
@@ -277,9 +295,8 @@ const deletePlayer = async (playerId) => {
     pipeline.zrem(`leaderboard:daily:${dailyKey}`, playerId);
     pipeline.zrem(`leaderboard:weekly:${weeklyKey}`, playerId);
     
-    // Delete all player data
+    // Delete all player data (profile is stored in player key)
     pipeline.del(`player:${playerId}`);
-    pipeline.del(`profile:${playerId}`);
     pipeline.del(`history:${playerId}`);
 
     const results = await pipeline.exec();
