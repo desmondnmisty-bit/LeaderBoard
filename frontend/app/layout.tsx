@@ -2,11 +2,12 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { LeaderboardProvider } from '../lib/LeaderboardContext';
+import { ThemeProvider } from '../lib/ThemeContext';
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Generic Leaderboard',
+  title: '4 The Win Leaderboard',
   description: 'Real-time leaderboard with Socket.io integration',
 };
 
@@ -18,9 +19,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <LeaderboardProvider>
-          {children}
-        </LeaderboardProvider>
+        <ThemeProvider>
+          <LeaderboardProvider>
+            {children}
+          </LeaderboardProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

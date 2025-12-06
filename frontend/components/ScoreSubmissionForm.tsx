@@ -77,13 +77,13 @@ export default function ScoreSubmissionForm() {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <h2 className="text-xl font-semibold mb-4">Submit Score</h2>
+    <div className="card p-6">
+      <h2 className="text-xl font-semibold mb-4 text-text-primary">Submit Score</h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="playerName" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="playerName" className="block text-sm font-medium text-text-primary mb-1">
               Player Name *
             </label>
             <input
@@ -91,14 +91,14 @@ export default function ScoreSubmissionForm() {
               id="playerName"
               value={playerName}
               onChange={(e) => setPlayerName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus-ring"
+              className="input-field w-full px-3 py-2 rounded-md focus-ring"
               placeholder="Enter your name"
               required
             />
           </div>
 
           <div>
-            <label htmlFor="score" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="score" className="block text-sm font-medium text-text-primary mb-1">
               Score *
             </label>
             <input
@@ -106,7 +106,7 @@ export default function ScoreSubmissionForm() {
               id="score"
               value={score}
               onChange={(e) => setScore(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus-ring"
+              className="input-field w-full px-3 py-2 rounded-md focus-ring"
               placeholder="Enter score"
               min="0"
               required
@@ -115,14 +115,14 @@ export default function ScoreSubmissionForm() {
         </div>
 
         <div>
-          <label htmlFor="metadata" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="metadata" className="block text-sm font-medium text-text-primary mb-1">
             Metadata (JSON, optional)
           </label>
           <textarea
             id="metadata"
             value={metadata}
             onChange={(e) => setMetadata(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus-ring"
+            className="input-field w-full px-3 py-2 rounded-md focus-ring"
             placeholder='{"level": 5, "country": "US"}'
             rows={3}
           />

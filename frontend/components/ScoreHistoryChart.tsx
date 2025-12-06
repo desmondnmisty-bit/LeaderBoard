@@ -60,7 +60,7 @@ export default function ScoreHistoryChart({ playerId, height = 200 }: ScoreHisto
   if (loading) {
     return (
       <div className="flex items-center justify-center" style={{ height }}>
-        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-500"></div>
+        <div className="animate-spin h-6 w-6 border-b-2 border-purple-500"></div>
       </div>
     );
   }

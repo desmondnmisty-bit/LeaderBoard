@@ -111,7 +111,7 @@ export default function PlayerProfileModal({ playerId, onClose }: PlayerProfileM
         <div className="p-6">
           {loading && (
             <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
+              <div className="animate-spin h-8 w-8 border-b-2 border-purple-500"></div>
             </div>
           )}
 
@@ -156,14 +156,14 @@ export default function PlayerProfileModal({ playerId, onClose }: PlayerProfileM
               {/* Score History Chart */}
               <div className="mb-6">
                 <h3 className="text-sm font-medium text-gray-400 mb-3">Score History</h3>
-                <div className="bg-gray-800 rounded-lg p-4">
+                <div className="bg-gray-800 p-4">
                   <ScoreHistoryChart playerId={playerId} height={180} />
                 </div>
               </div>
 
               {/* Best Rank */}
               {stats?.bestRank && (
-                <div className="flex items-center justify-center gap-2 py-4 bg-gradient-to-r from-yellow-900/20 to-amber-900/20 rounded-lg border border-yellow-700/30">
+                <div className="flex items-center justify-center gap-2 py-4 bg-gradient-to-r from-yellow-900/20 to-amber-900/20 border border-yellow-700/30">
                   <span className="text-yellow-500 text-2xl">🏆</span>
                   <span className="text-gray-300">Best Rank: </span>
                   <span className="text-yellow-400 font-bold text-lg">#{stats.bestRank}</span>
@@ -186,7 +186,7 @@ export default function PlayerProfileModal({ playerId, onClose }: PlayerProfileM
 
 function StatCard({ label, rank, score }: { label: string; rank?: number; score?: number }) {
   return (
-    <div className="bg-gray-800 rounded-lg p-3 text-center">
+    <div className="bg-gray-800 p-3 text-center">
       <div className="text-xs text-gray-400 mb-1">{label}</div>
       {rank ? (
         <>

@@ -2,20 +2,87 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --primary: #3b82f6;
-  --secondary: #64748b;
-  --accent: #f59e0b;
-  --bg-dark: #1f2937;
-  --text-light: #f9fafb;
+/* Light Theme (Default) */
+:root,
+html.light {
+  --color-primary: #3b82f6;
+  --color-secondary: #64748b;
+  --color-accent: #f59e0b;
+  --color-success: #10b981;
+  --color-error: #ef4444;
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f9fafb;
+  --color-bg-tertiary: #f3f4f6;
+  --color-text-primary: #111827;
+  --color-text-secondary: #4b5563;
+  --color-text-tertiary: #9ca3af;
+  --color-border: #e5e7eb;
+}
+
+/* Dark Theme */
+html.dark {
+  --color-primary: #60a5fa;
+  --color-secondary: #cbd5e1;
+  --color-accent: #fbbf24;
+  --color-success: #34d399;
+  --color-error: #f87171;
+  --color-bg-primary: #111827;
+  --color-bg-secondary: #1f2937;
+  --color-bg-tertiary: #374151;
+  --color-text-primary: #f9fafb;
+  --color-text-secondary: #d1d5db;
+  --color-text-tertiary: #9ca3af;
+  --color-border: #374151;
+}
+
+/* High Contrast Theme */
+html.high-contrast {
+  --color-primary: #0000ee;
+  --color-secondary: #333333;
+  --color-accent: #ff8800;
+  --color-success: #008000;
+  --color-error: #cc0000;
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f5f5f5;
+  --color-bg-tertiary: #eeeeee;
+  --color-text-primary: #000000;
+  --color-text-secondary: #1a1a1a;
+  --color-text-tertiary: #333333;
+  --color-border: #000000;
 }
 
 @layer base {
   body {
     font-family: 'Inter', sans-serif;
-    background-color: #f9fafb;
-    color: #111827;
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
     scroll-behavior: smooth;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  /* High contrast additional styles for better accessibility */
+  html.high-contrast body {
+    border: 2px solid var(--color-border);
+  }
+
+  html.high-contrast * {
+    border-color: var(--color-border);
+  }
+
+  html.high-contrast button,
+  html.high-contrast input,
+  html.high-contrast select,
+  html.high-contrast textarea {
+    border: 2px solid var(--color-text-primary);
+    border-radius: 0;
+  }
+
+  html.high-contrast button:focus,
+  html.high-contrast input:focus,
+  html.high-contrast select:focus,
+  html.high-contrast textarea:focus {
+    outline: 3px solid var(--color-primary);
+    outline-offset: 2px;
   }
 }
 
@@ -31,6 +98,70 @@
   .pulse-highlight {
     animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
+
+  /* Theme Toggle Styles */
+  .theme-toggle-container {
+    background-color: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+  }
+
+  .theme-toggle-active {
+    background-color: var(--color-primary);
+    color: white;
+  }
+
+  .theme-toggle-inactive {
+    background-color: transparent;
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
+  }
+
+  .theme-toggle-inactive:hover {
+    background-color: var(--color-bg-tertiary);
+  }
+
+  /* Card Styles */
+  .card {
+    background-color: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+  }
+
+  /* Table Styles */
+  .table-header {
+    background-color: var(--color-bg-tertiary);
+    color: var(--color-text-secondary);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .table-row {
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .table-row:hover {
+    background-color: var(--color-bg-secondary);
+  }
+
+  /* Input Styles */
+  .input-field {
+    background-color: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
+  }
+
+  .input-field:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  html.dark .input-field:focus {
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+  }
+
+  html.high-contrast .input-field:focus {
+    outline: 3px solid var(--color-primary);
+    outline-offset: 0;
+  }
 }
 
 @layer utilities {
@@ -45,6 +176,18 @@
 
   .focus-ring {
     @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
+  }
+
+  html.dark .focus-ring {
+    @apply focus:ring-offset-bg-primary;
+  }
+
+  html.high-contrast .focus-ring {
+    @apply focus:outline-none focus:ring-4 focus:ring-primary focus:ring-offset-2;
+  }
+
+  .transition-theme {
+    @apply transition-colors duration-300;
   }
 }
 

@@ -66,8 +66,8 @@ export default function YourRankIndicator({ playerId, onPlayerIdChange, activeTa
   }, [playerId, onPlayerIdChange]);
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-4">
-      <h3 className="text-lg font-semibold mb-4">Your Rank</h3>
+    <div className="card p-4">
+      <h3 className="text-lg font-semibold mb-4 text-text-primary">Your Rank</h3>
 
       <div className="space-y-4">
         <div className="flex gap-2">
@@ -77,7 +77,7 @@ export default function YourRankIndicator({ playerId, onPlayerIdChange, activeTa
             onChange={(e) => setInputPlayerId(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Enter player ID"
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus-ring"
+            className="input-field flex-1 px-3 py-2 rounded-md focus-ring"
           />
           <button
             onClick={handleTrackRank}
@@ -89,16 +89,16 @@ export default function YourRankIndicator({ playerId, onPlayerIdChange, activeTa
 
         {loading ? (
           <div className="animate-pulse">
-            <div className="h-16 bg-gray-200 rounded"></div>
+            <div className="h-16 bg-bg-tertiary rounded"></div>
           </div>
         ) : rankData ? (
-          <div className="bg-accent/10 border border-accent/20 rounded-lg p-4">
+          <div className="bg-accent/10 border border-accent/20 p-4">
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-2xl font-bold text-accent">
                   #{rankData.player.rank}
                 </div>
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-text-secondary">
                   Score: {rankData.player.score.toLocaleString()}
                 </div>
               </div>
@@ -106,11 +106,11 @@ export default function YourRankIndicator({ playerId, onPlayerIdChange, activeTa
             </div>
           </div>
         ) : playerId ? (
-          <div className="text-center text-gray-500 py-4">
+          <div className="text-center text-text-secondary py-4">
             Not ranked in {activeTab}
           </div>
         ) : (
-          <div className="text-center text-gray-400 py-4">
+          <div className="text-center text-text-tertiary py-4">
             Enter player ID to track rank
           </div>
         )}

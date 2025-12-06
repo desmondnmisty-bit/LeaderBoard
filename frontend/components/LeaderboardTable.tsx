@@ -56,26 +56,26 @@ export default function LeaderboardTable({
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-8 text-center">
+      <div className="card p-8 text-center">
         <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mx-auto mb-4"></div>
+          <div className="h-8 bg-bg-tertiary rounded w-1/4 mx-auto mb-4"></div>
           <div className="space-y-3">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-16 bg-gray-100 rounded"></div>
+              <div key={i} className="h-16 bg-bg-secondary rounded"></div>
             ))}
           </div>
         </div>
-        <p className="text-gray-500 mt-4">Loading leaderboard...</p>
+        <p className="text-text-secondary mt-4">Loading leaderboard...</p>
       </div>
     );
   }
 
   if (filteredPlayers.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-8 text-center">
-        <div className="text-gray-400 text-lg mb-2">🏆</div>
-        <h3 className="text-lg font-medium text-gray-900 mb-2">No players found</h3>
-        <p className="text-gray-500">
+      <div className="card p-8 text-center">
+        <div className="text-text-tertiary text-lg mb-2">🏆</div>
+        <h3 className="text-lg font-medium text-text-primary mb-2">No players found</h3>
+        <p className="text-text-secondary">
           {searchQuery ? 'Try adjusting your search query.' : 'Be the first to submit a score!'}
         </p>
       </div>
@@ -83,14 +83,14 @@ export default function LeaderboardTable({
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+    <div className="card overflow-hidden">
       {/* Table Header */}
-      <div className="px-6 py-4 border-b border-gray-200">
+      <div className="px-6 py-4 border-b border-border-color">
         <div className="flex justify-between items-center">
-          <h3 className="text-lg font-semibold text-gray-900">
+          <h3 className="text-lg font-semibold text-text-primary">
             Leaderboard ({activeTab})
           </h3>
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-text-secondary">
             Showing {paginatedPlayers.length} of {filteredPlayers.length} players
           </div>
         </div>
@@ -98,32 +98,32 @@ export default function LeaderboardTable({
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className="min-w-full divide-y divide-border-color">
+          <thead className="table-header">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
+              <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider w-20">
                 Rank
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
                 Player
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
+              <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider w-16">
                 Country
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">
+              <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider w-32">
                 Score
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
                 Details
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="divide-y divide-border-color">
             {paginatedPlayers.map((player) => (
               <tr
                 key={player.playerId}
-                className={`hover:bg-gray-50 transition-colors cursor-pointer ${
-                  player.playerId === currentPlayerId ? 'bg-accent/5 border-l-4 border-accent' : ''
+                className={`table-row cursor-pointer ${
+                  player.playerId === currentPlayerId ? 'bg-primary/10 border-l-4 border-primary' : ''
                 }`}
                 onClick={() => setSelectedPlayerId(player.playerId)}
               >
@@ -142,10 +142,10 @@ export default function LeaderboardTable({
                       size="md"
                     />
                     <div>
-                      <div className="text-sm font-medium text-gray-900">
+                      <div className="text-sm font-medium text-text-primary">
                         {player.playerName}
                       </div>
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-text-secondary">
                         {player.playerId}
                       </div>
                     </div>
@@ -155,22 +155,22 @@ export default function LeaderboardTable({
                   <CountryFlag country={player.country} size="md" />
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">
+                  <div className="text-sm font-medium text-text-primary">
                     {formatScore(player.score)}
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500" onClick={(e) => e.stopPropagation()}>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary" onClick={(e) => e.stopPropagation()}>
                   {player.metadata && Object.keys(player.metadata).length > 0 ? (
                     <details className="cursor-pointer">
-                      <summary className="hover:text-gray-700">
+                      <summary className="hover:text-text-primary">
                         {Object.keys(player.metadata).length} fields
                       </summary>
-                      <pre className="mt-2 text-xs bg-gray-50 p-2 rounded overflow-x-auto">
+                      <pre className="mt-2 text-xs bg-bg-secondary p-2 rounded overflow-x-auto text-text-primary">
                         {JSON.stringify(player.metadata, null, 2)}
                       </pre>
                     </details>
                   ) : (
-                    <span className="text-gray-400">No metadata</span>
+                    <span className="text-text-tertiary">No metadata</span>
                   )}
                 </td>
               </tr>
@@ -180,13 +180,13 @@ export default function LeaderboardTable({
       </div>
 
       {/* Pagination */}
-      <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+      <div className="px-6 py-4 border-t border-border-color flex items-center justify-between bg-bg-secondary">
         <div className="flex items-center space-x-2">
-          <span className="text-sm text-gray-700">Show:</span>
+          <span className="text-sm text-text-primary">Show:</span>
           <select
             value={pageSize}
             onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-            className="border border-gray-300 rounded px-2 py-1 text-sm focus-ring"
+            className="input-field border rounded px-2 py-1 text-sm focus-ring"
           >
             <option value={10}>10</option>
             <option value={25}>25</option>
@@ -199,19 +199,19 @@ export default function LeaderboardTable({
           <button
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
-            className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed focus-ring"
+            className="px-3 py-1 border border-border-color rounded text-sm hover:bg-bg-tertiary text-text-primary disabled:opacity-50 disabled:cursor-not-allowed focus-ring"
           >
             Previous
           </button>
 
-          <span className="text-sm text-gray-700">
+          <span className="text-sm text-text-primary">
             Page {currentPage} of {totalPages}
           </span>
 
           <button
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
-            className="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed focus-ring"
+            className="px-3 py-1 border border-border-color rounded text-sm hover:bg-bg-tertiary text-text-primary disabled:opacity-50 disabled:cursor-not-allowed focus-ring"
           >
             Next
           </button>

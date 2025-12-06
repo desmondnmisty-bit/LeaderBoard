@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import ThemeToggle from '../../components/ThemeToggle';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -272,36 +273,36 @@ export default function AdminDashboard() {
   // Login screen
   if (!isAuthenticated) {
     return (
-      <main className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
-        <div className="bg-gray-800 rounded-lg p-8 max-w-md w-full">
-          <h1 className="text-2xl font-bold text-white mb-6 text-center">Admin Dashboard</h1>
+      <main className="min-h-screen bg-bg-primary flex items-center justify-center p-4">
+        <div className="card p-8 max-w-md w-full">
+          <h1 className="text-2xl font-bold text-text-primary mb-6 text-center">Admin Dashboard</h1>
           
           {error && (
-            <div className="bg-red-500/20 border border-red-500 text-red-400 px-4 py-2 rounded mb-4">
+            <div className="bg-error/20 border border-error text-error px-4 py-2 rounded mb-4">
               {error}
             </div>
           )}
           
           <div className="space-y-4">
             <div>
-              <label className="block text-gray-400 text-sm mb-2">Admin API Key</label>
+              <label className="block text-text-secondary text-sm mb-2">Admin API Key</label>
               <input
                 type="password"
                 value={adminKey}
                 onChange={(e) => setAdminKey(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-                className="w-full bg-gray-700 text-white rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="input-field w-full rounded px-4 py-2"
                 placeholder="Enter admin key..."
               />
             </div>
             <button
               onClick={handleLogin}
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white font-medium py-2 rounded transition-colors"
+              className="w-full bg-primary hover:bg-primary/90 disabled:bg-text-tertiary text-white font-medium py-2 rounded transition-colors"
             >
               {loading ? 'Authenticating...' : 'Login'}
             </button>
-            <p className="text-gray-500 text-sm text-center">
+            <p className="text-text-secondary text-sm text-center">
               Leave empty if ADMIN_API_KEY is not configured
             </p>
           </div>
@@ -311,33 +312,36 @@ export default function AdminDashboard() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-900 text-white">
+    <main className="min-h-screen bg-bg-primary text-text-primary">
       {/* Header */}
-      <header className="bg-gray-800 border-b border-gray-700 px-6 py-4">
+      <header className="bg-bg-secondary border-b border-border-color px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <h1 className="text-xl font-bold">Leaderboard Admin</h1>
-          <button
-            onClick={handleLogout}
-            className="text-gray-400 hover:text-white transition-colors"
-          >
-            Logout
-          </button>
+          <div className="flex items-center gap-4">
+            <ThemeToggle />
+            <button
+              onClick={handleLogout}
+              className="text-text-secondary hover:text-text-primary transition-colors"
+            >
+              Logout
+            </button>
+          </div>
         </div>
       </header>
 
       {/* Messages */}
       {error && (
         <div className="max-w-7xl mx-auto px-6 pt-4">
-          <div className="bg-red-500/20 border border-red-500 text-red-400 px-4 py-2 rounded flex justify-between items-center">
+          <div className="bg-error/20 border border-error text-error px-4 py-2 rounded flex justify-between items-center">
             {error}
-            <button onClick={() => setError(null)} className="text-red-400 hover:text-red-300">×</button>
+            <button onClick={() => setError(null)} className="text-error hover:text-error/80">×</button>
           </div>
         </div>
       )}
       
       {successMessage && (
         <div className="max-w-7xl mx-auto px-6 pt-4">
-          <div className="bg-green-500/20 border border-green-500 text-green-400 px-4 py-2 rounded">
+          <div className="bg-success/20 border border-success text-success px-4 py-2 rounded">
             {successMessage}
           </div>
         </div>
@@ -352,8 +356,8 @@ export default function AdminDashboard() {
               onClick={() => setActiveTab(tab)}
               className={`px-4 py-2 rounded font-medium transition-colors ${
                 activeTab === tab
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-800 text-gray-400 hover:text-white'
+                  ? 'bg-primary text-white'
+                  : 'bg-bg-secondary text-text-secondary hover:text-text-primary'
               }`}
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -366,58 +370,58 @@ export default function AdminDashboard() {
           <div className="space-y-6">
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-gray-800 rounded-lg p-6">
-                <div className="text-gray-400 text-sm mb-1">Total Players</div>
-                <div className="text-3xl font-bold">{stats?.players.all ?? '-'}</div>
+              <div className="card p-6">
+                <div className="text-text-secondary text-sm mb-1">Total Players</div>
+                <div className="text-3xl font-bold text-text-primary">{stats?.players.all ?? '-'}</div>
               </div>
-              <div className="bg-gray-800 rounded-lg p-6">
-                <div className="text-gray-400 text-sm mb-1">Daily Players</div>
-                <div className="text-3xl font-bold">{stats?.players.daily ?? '-'}</div>
+              <div className="card p-6">
+                <div className="text-text-secondary text-sm mb-1">Daily Players</div>
+                <div className="text-3xl font-bold text-text-primary">{stats?.players.daily ?? '-'}</div>
               </div>
-              <div className="bg-gray-800 rounded-lg p-6">
-                <div className="text-gray-400 text-sm mb-1">Weekly Players</div>
-                <div className="text-3xl font-bold">{stats?.players.weekly ?? '-'}</div>
+              <div className="card p-6">
+                <div className="text-text-secondary text-sm mb-1">Weekly Players</div>
+                <div className="text-3xl font-bold text-text-primary">{stats?.players.weekly ?? '-'}</div>
               </div>
-              <div className="bg-gray-800 rounded-lg p-6">
-                <div className="text-gray-400 text-sm mb-1">Scores Today</div>
-                <div className="text-3xl font-bold">{stats?.scoresToday ?? '-'}</div>
+              <div className="card p-6">
+                <div className="text-text-secondary text-sm mb-1">Scores Today</div>
+                <div className="text-3xl font-bold text-text-primary">{stats?.scoresToday ?? '-'}</div>
               </div>
             </div>
 
             {/* System Status */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-gray-800 rounded-lg p-6">
-                <h3 className="text-lg font-medium mb-4">Redis Status</h3>
+              <div className="card p-6">
+                <h3 className="text-lg font-medium text-text-primary mb-4">Redis Status</h3>
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-gray-400">Status</span>
+                    <span className="text-text-secondary">Status</span>
                     <span className={`px-2 py-1 rounded text-sm ${
-                      stats?.redis.status === 'connected' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                      stats?.redis.status === 'connected' ? 'bg-success/20 text-success' : 'bg-error/20 text-error'
                     }`}>
                       {stats?.redis.status ?? 'Unknown'}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-400">Uptime</span>
-                    <span>{stats?.redis.uptime ? formatUptime(stats.redis.uptime) : '-'}</span>
+                    <span className="text-text-secondary">Uptime</span>
+                    <span className="text-text-primary">{stats?.redis.uptime ? formatUptime(stats.redis.uptime) : '-'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-400">Memory</span>
-                    <span>{stats?.redis.memory ?? '-'}</span>
+                    <span className="text-text-secondary">Memory</span>
+                    <span className="text-text-primary">{stats?.redis.memory ?? '-'}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-gray-800 rounded-lg p-6">
-                <h3 className="text-lg font-medium mb-4">Server Status</h3>
+              <div className="card p-6">
+                <h3 className="text-lg font-medium text-text-primary mb-4">Server Status</h3>
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-gray-400">Uptime</span>
-                    <span>{stats?.serverUptime ? formatUptime(stats.serverUptime) : '-'}</span>
+                    <span className="text-text-secondary">Uptime</span>
+                    <span className="text-text-primary">{stats?.serverUptime ? formatUptime(stats.serverUptime) : '-'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-400">Environment</span>
-                    <span className="px-2 py-1 rounded text-sm bg-blue-500/20 text-blue-400">
+                    <span className="text-text-secondary">Environment</span>
+                    <span className="px-2 py-1 rounded text-sm bg-primary/20 text-primary">
                       {process.env.NODE_ENV || 'development'}
                     </span>
                   </div>
@@ -426,23 +430,23 @@ export default function AdminDashboard() {
             </div>
 
             {/* Leaderboard Management */}
-            <div className="bg-gray-800 rounded-lg p-6">
-              <h3 className="text-lg font-medium mb-4">Leaderboard Management</h3>
+            <div className="card p-6">
+              <h3 className="text-lg font-medium text-text-primary mb-4">Leaderboard Management</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {leaderboards && Object.entries(leaderboards).map(([key, lb]) => (
-                  <div key={key} className="bg-gray-700/50 rounded-lg p-4">
+                  <div key={key} className="bg-bg-tertiary p-4">
                     <div className="flex justify-between items-center mb-3">
-                      <span className="font-medium capitalize">{key}</span>
-                      <span className="text-gray-400 text-sm">{lb.totalPlayers} players</span>
+                      <span className="font-medium text-text-primary capitalize">{key}</span>
+                      <span className="text-text-secondary text-sm">{lb.totalPlayers} players</span>
                     </div>
                     {lb.expiresIn && (
-                      <div className="text-gray-500 text-sm mb-2">Expires: {lb.expiresIn}</div>
+                      <div className="text-text-tertiary text-sm mb-2">Expires: {lb.expiresIn}</div>
                     )}
                     <div className="space-y-1 mb-3">
                       {lb.topPlayers.slice(0, 3).map((player, i) => (
                         <div key={player.playerId} className="flex justify-between text-sm">
-                          <span className="text-gray-400">#{i + 1} {player.playerName}</span>
-                          <span>{player.score.toLocaleString()}</span>
+                          <span className="text-text-secondary">#{i + 1} {player.playerName}</span>
+                          <span className="text-text-primary">{player.score.toLocaleString()}</span>
                         </div>
                       ))}
                     </div>
@@ -450,8 +454,8 @@ export default function AdminDashboard() {
                       onClick={() => handleResetLeaderboard(key)}
                       className={`w-full py-2 rounded text-sm font-medium transition-colors ${
                         key === 'all'
-                          ? 'bg-red-600 hover:bg-red-700'
-                          : 'bg-yellow-600 hover:bg-yellow-700'
+                          ? 'bg-error hover:bg-error/90'
+                          : 'bg-accent hover:bg-accent/90'
                       }`}
                     >
                       Reset {key.charAt(0).toUpperCase() + key.slice(1)}
@@ -472,30 +476,30 @@ export default function AdminDashboard() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search players..."
-                className="flex-1 bg-gray-800 text-white rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="input-field flex-1 rounded px-4 py-2"
               />
             </div>
 
-            <div className="bg-gray-800 rounded-lg overflow-hidden">
+            <div className="card overflow-hidden">
               <table className="w-full">
-                <thead className="bg-gray-700">
+                <thead className="table-header">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-300">Rank</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-300">Player ID</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-300">Name</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-300">Score</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-300">Metadata</th>
-                    <th className="px-4 py-3 text-right text-sm font-medium text-gray-300">Actions</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium">Rank</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium">Player ID</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium">Name</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium">Score</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium">Metadata</th>
+                    <th className="px-4 py-3 text-right text-sm font-medium">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-700">
+                <tbody className="divide-y divide-border-color">
                   {players.map((player) => (
-                    <tr key={player.playerId} className="hover:bg-gray-700/50">
-                      <td className="px-4 py-3 text-sm">#{player.rank}</td>
-                      <td className="px-4 py-3 text-sm font-mono text-gray-400">{player.playerId}</td>
-                      <td className="px-4 py-3 text-sm">{player.playerName}</td>
-                      <td className="px-4 py-3 text-sm font-medium">{player.score.toLocaleString()}</td>
-                      <td className="px-4 py-3 text-sm text-gray-400">
+                    <tr key={player.playerId} className="table-row">
+                      <td className="px-4 py-3 text-sm text-text-primary">#{player.rank}</td>
+                      <td className="px-4 py-3 text-sm font-mono text-text-secondary">{player.playerId}</td>
+                      <td className="px-4 py-3 text-sm text-text-primary">{player.playerName}</td>
+                      <td className="px-4 py-3 text-sm font-medium text-text-primary">{player.score.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-sm text-text-secondary">
                         {Object.keys(player.metadata).length > 0 
                           ? JSON.stringify(player.metadata).slice(0, 30) + '...'
                           : '-'}
@@ -503,7 +507,7 @@ export default function AdminDashboard() {
                       <td className="px-4 py-3 text-right">
                         <button
                           onClick={() => handleDeletePlayer(player.playerId)}
-                          className="text-red-400 hover:text-red-300 text-sm"
+                          className="text-error hover:text-error/80 text-sm"
                         >
                           Delete
                         </button>
@@ -512,7 +516,7 @@ export default function AdminDashboard() {
                   ))}
                   {players.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                      <td colSpan={6} className="px-4 py-8 text-center text-text-tertiary">
                         No players found
                       </td>
                     </tr>
@@ -525,55 +529,55 @@ export default function AdminDashboard() {
 
         {/* Activity Tab */}
         {activeTab === 'activity' && (
-          <div className="bg-gray-800 rounded-lg overflow-hidden">
-            <div className="px-4 py-3 bg-gray-700 flex justify-between items-center">
-              <span className="font-medium">Recent Activity</span>
+          <div className="card rounded-lg overflow-hidden">
+            <div className="px-4 py-3 bg-bg-tertiary flex justify-between items-center">
+              <span className="font-medium text-text-primary">Recent Activity</span>
               <button
                 onClick={fetchActivity}
-                className="text-blue-400 hover:text-blue-300 text-sm"
+                className="text-primary hover:text-primary/80 text-sm"
               >
                 Refresh
               </button>
             </div>
-            <div className="divide-y divide-gray-700 max-h-[600px] overflow-y-auto">
+            <div className="divide-y divide-border-color max-h-[600px] overflow-y-auto">
               {activity.map((item, index) => (
                 <div key={index} className="px-4 py-3 flex items-center gap-4">
-                  <div className={`w-2 h-2 rounded-full ${
-                    item.type === 'score' ? 'bg-green-500' :
-                    item.type === 'delete' ? 'bg-red-500' :
-                    item.type === 'reset' ? 'bg-yellow-500' : 'bg-gray-500'
+                  <div className={`w-2 h-2 ${
+                    item.type === 'score' ? 'bg-success' :
+                    item.type === 'delete' ? 'bg-error' :
+                    item.type === 'reset' ? 'bg-accent' : 'bg-text-tertiary'
                   }`} />
                   <div className="flex-1">
                     {item.type === 'score' && (
-                      <span>
+                      <span className="text-text-primary">
                         <span className="font-medium">{item.playerName}</span>
-                        <span className="text-gray-400"> scored </span>
+                        <span className="text-text-secondary"> scored </span>
                         <span className="font-medium">{item.score?.toLocaleString()}</span>
-                        <span className="text-gray-400"> (Rank #{item.rank})</span>
+                        <span className="text-text-secondary"> (Rank #{item.rank})</span>
                       </span>
                     )}
                     {item.type === 'delete' && (
-                      <span>
-                        <span className="text-red-400">Deleted player: </span>
+                      <span className="text-text-primary">
+                        <span className="text-error">Deleted player: </span>
                         <span className="font-medium">{item.playerId}</span>
                       </span>
                     )}
                     {item.type === 'reset' && (
-                      <span>
-                        <span className="text-yellow-400">Reset {item.timeRange} leaderboard</span>
+                      <span className="text-text-primary">
+                        <span className="text-accent">Reset {item.timeRange} leaderboard</span>
                         {item.playersAffected && (
-                          <span className="text-gray-400"> ({item.playersAffected} players affected)</span>
+                          <span className="text-text-secondary"> ({item.playersAffected} players affected)</span>
                         )}
                       </span>
                     )}
                   </div>
-                  <div className="text-gray-500 text-sm">
+                  <div className="text-text-tertiary text-sm">
                     {formatTimestamp(item.timestamp)}
                   </div>
                 </div>
               ))}
               {activity.length === 0 && (
-                <div className="px-4 py-8 text-center text-gray-500">
+                <div className="px-4 py-8 text-center text-text-tertiary">
                   No recent activity
                 </div>
               )}

@@ -1,6 +1,6 @@
-# Frontend - Generic Leaderboard
+# Frontend - 4 The Win Leaderboard
 
-Next.js 14 frontend application for the Generic Leaderboard with real-time updates via Socket.io.
+Next.js 14 frontend application for the 4 The Win Leaderboard with real-time updates via Socket.io.
 
 ## Features
 

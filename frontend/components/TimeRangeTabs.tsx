@@ -15,7 +15,7 @@ export default function TimeRangeTabs({ activeTab, onTabChange }: TimeRangeTabsP
   ];
 
   return (
-    <div className="flex flex-col sm:flex-row border-b border-gray-200">
+    <div className="flex flex-col sm:flex-row border-b border-border-color">
       {tabs.map((tab) => (
         <button
           key={tab.key}
@@ -23,7 +23,7 @@ export default function TimeRangeTabs({ activeTab, onTabChange }: TimeRangeTabsP
           className={`px-6 py-3 text-sm font-medium transition-colors duration-200 focus-ring ${
             activeTab === tab.key
               ? 'border-b-2 border-primary text-primary bg-primary/5'
-              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+              : 'text-text-secondary hover:text-text-primary hover:bg-bg-secondary'
           }`}
         >
           {tab.label}

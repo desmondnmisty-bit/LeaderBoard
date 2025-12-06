@@ -54,18 +54,18 @@ export default function LeaderboardContainer() {
     <div className="space-y-6">
       {/* Connection Status */}
       <div className="flex justify-end">
-        <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+        <div className={`px-3 py-1 font-medium text-white ${
           isConnected
-            ? 'bg-success text-white'
-            : 'bg-error text-white'
+            ? 'bg-success'
+            : 'bg-error'
         }`}>
-          {isConnected ? '🟢 Connected' : '🔴 Disconnected'}
+          {isConnected ? 'Connected' : 'Disconnected'}
         </div>
       </div>
 
       {/* Error Message */}
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+        <div className="bg-error/10 border border-error text-error px-4 py-3 rounded">
           {error}
         </div>
       )}

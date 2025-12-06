@@ -68,7 +68,7 @@ export default function PlayerAvatar({
 
   if (showImage) {
     return (
-      <div className={`${sizeClasses[size]} rounded-full overflow-hidden flex-shrink-0 ${className}`}>
+      <div className={`${sizeClasses[size]} overflow-hidden flex-shrink-0 ${className}`}>
         <img
           src={avatarUrl}
           alt={`${playerName}'s avatar`}
@@ -85,7 +85,7 @@ export default function PlayerAvatar({
 
   return (
     <div 
-      className={`${sizeClasses[size]} ${bgColor} rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0 ${className}`}
+      className={`${sizeClasses[size]} ${bgColor} flex items-center justify-center text-white font-semibold flex-shrink-0 ${className}`}
       title={playerName}
     >
       {initials}
