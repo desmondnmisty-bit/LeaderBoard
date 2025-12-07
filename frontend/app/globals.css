@@ -5,11 +5,11 @@
 /* Light Theme (Default) */
 :root,
 html.light {
-  --color-primary: #3b82f6;
+  --color-primary: #1d4ed8;
   --color-secondary: #64748b;
-  --color-accent: #f59e0b;
-  --color-success: #10b981;
-  --color-error: #ef4444;
+  --color-accent: #d97706;
+  --color-success: #059669;
+  --color-error: #dc2626;
   --color-bg-primary: #ffffff;
   --color-bg-secondary: #f9fafb;
   --color-bg-tertiary: #f3f4f6;
@@ -21,11 +21,11 @@ html.light {
 
 /* Dark Theme */
 html.dark {
-  --color-primary: #60a5fa;
+  --color-primary: #1e40af;
   --color-secondary: #cbd5e1;
-  --color-accent: #fbbf24;
-  --color-success: #34d399;
-  --color-error: #f87171;
+  --color-accent: #b45309;
+  --color-success: #047857;
+  --color-error: #991b1b;
   --color-bg-primary: #111827;
   --color-bg-secondary: #1f2937;
   --color-bg-tertiary: #374151;
@@ -58,6 +58,11 @@ html.high-contrast {
     color: var(--color-text-primary);
     scroll-behavior: smooth;
     transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  main {
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
   }
 
   /* High contrast additional styles for better accessibility */
@@ -108,11 +113,12 @@ html.high-contrast {
   .theme-toggle-active {
     background-color: var(--color-primary);
     color: white;
+    font-weight: 600;
   }
 
   .theme-toggle-inactive {
     background-color: transparent;
-    color: var(--color-text-secondary);
+    color: var(--color-text-primary);
     border: 1px solid var(--color-border);
   }
 

@@ -182,11 +182,13 @@ export default function LeaderboardTable({
       {/* Pagination */}
       <div className="px-6 py-4 border-t border-border-color flex items-center justify-between bg-bg-secondary">
         <div className="flex items-center space-x-2">
-          <span className="text-sm text-text-primary">Show:</span>
+          <label htmlFor="pageSize" className="text-sm text-text-primary">Show:</label>
           <select
+            id="pageSize"
             value={pageSize}
             onChange={(e) => handlePageSizeChange(Number(e.target.value))}
             className="input-field border rounded px-2 py-1 text-sm focus-ring"
+            aria-label="Number of players to show per page"
           >
             <option value={10}>10</option>
             <option value={25}>25</option>

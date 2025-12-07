@@ -138,10 +138,10 @@ export default function ScoreSubmissionForm() {
       </form>
 
       {message && (
-        <div className={`mt-4 p-3 rounded-md ${
+        <div className={`mt-4 p-3 rounded-md font-medium ${
           message.type === 'success'
-            ? 'bg-success/10 text-success border border-success/20'
-            : 'bg-error/10 text-error border border-error/20'
+            ? 'bg-success text-white border border-success'
+            : 'bg-error text-white border border-error'
         }`}>
           {message.text}
         </div>

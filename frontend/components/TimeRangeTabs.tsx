@@ -22,7 +22,7 @@ export default function TimeRangeTabs({ activeTab, onTabChange }: TimeRangeTabsP
           onClick={() => onTabChange(tab.key)}
           className={`px-6 py-3 text-sm font-medium transition-colors duration-200 focus-ring ${
             activeTab === tab.key
-              ? 'border-b-2 border-primary text-primary bg-primary/5'
+              ? 'border-b-2 border-primary text-white bg-primary'
               : 'text-text-secondary hover:text-text-primary hover:bg-bg-secondary'
           }`}
         >
