@@ -65,7 +65,6 @@ export default function ScoreSubmissionForm() {
         setMetadata('');
         // Refresh the leaderboard to show updated scores
         await refreshPlayers();
-        console.log('[ScoreSubmission] Refresh complete');
       } else {
         setMessage({ type: 'error', text: result.error?.message || 'Failed to submit score' });
       }

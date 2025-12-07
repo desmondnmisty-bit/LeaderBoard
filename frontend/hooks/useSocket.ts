@@ -55,7 +55,6 @@ function initializeSocket() {
   });
 
   socketInstance.on('connect', () => {
-    console.log('Socket.io connected');
     socketState = { socket: socketInstance, isConnected: true };
     notifyListeners();
     
@@ -66,7 +65,6 @@ function initializeSocket() {
   });
 
   socketInstance.on('disconnect', () => {
-    console.log('Socket.io disconnected');
     socketState = { socket: socketInstance, isConnected: false };
     notifyListeners();
   });

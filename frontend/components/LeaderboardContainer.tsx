@@ -29,7 +29,6 @@ export default function LeaderboardContainer() {
         // Update player's rank in context if it's the current player
         if (data.playerId === currentPlayerId) {
           // This would update the rank indicator
-          console.log('Player update:', data);
         }
       };
 

@@ -69,25 +69,38 @@ A real-time leaderboard application built with Express, Socket.io, Redis, and Ne
 
 ### Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| MAX_SCORE | Maximum allowed score | 1000000 |
-| MIN_SCORE | Minimum allowed score | 0 |
-| UPDATE_INTERVAL | Update broadcast interval (ms) | 30000 |
-| REDIS_URL | Redis connection string | redis://localhost:6379 |
-| PORT | Backend server port | 3001 |
-| CORS_ORIGIN | Frontend URL for CORS | http://localhost:3000 |
-| NODE_ENV | Environment mode | development |
-| DEMO_MODE | Enable demo mode | true |
-| DEMO_INTERVAL | Demo mode interval (ms) | 10000 |
-| ADMIN_API_KEY | Optional admin API key |  |
-| SOCKET_IO_PATH | Socket.io endpoint path | /socket.io |
-| NEXT_PUBLIC_API_URL | Backend API URL | http://localhost:3001 |
-| NEXT_PUBLIC_SOCKET_URL | Socket.io server URL | http://localhost:3001 |
-| RATE_LIMIT_ENABLED | Enable rate limiting | true |
-| RATE_LIMIT_SCORE | Score submissions per minute | 10 |
-| RATE_LIMIT_API | API calls per 15 minutes | 100 |
-| LOG_LEVEL | Logging level (debug/info/warn/error) | info |
+| Variable | Description | Default | Production |
+|----------|-------------|---------|------------|
+| MAX_SCORE | Maximum allowed score | 1000000 | 1000000 |
+| MIN_SCORE | Minimum allowed score | 0 | 0 |
+| UPDATE_INTERVAL | Update broadcast interval (ms) | 30000 | 30000 |
+| REDIS_URL | Redis connection string | redis://localhost:6379 | Auto (Railway) |
+| PORT | Backend server port | 3001 | Auto (Railway) |
+| CORS_ORIGIN | Frontend URL for CORS | http://localhost:3000 | Set to frontend URL |
+| NODE_ENV | Environment mode | development | **production** |
+| DEMO_MODE | Enable demo mode | true | **false** |
+| DEMO_INTERVAL | Demo mode interval (ms) | 10000 | N/A |
+| ADMIN_API_KEY | Optional admin API key |  | **Required!** |
+| SOCKET_IO_PATH | Socket.io endpoint path | /socket.io | /socket.io |
+| NEXT_PUBLIC_API_URL | Backend API URL | http://localhost:3001 | Set to backend URL |
+| NEXT_PUBLIC_SOCKET_URL | Socket.io server URL | http://localhost:3001 | Set to backend URL |
+| RATE_LIMIT_ENABLED | Enable rate limiting | true | true |
+| RATE_LIMIT_SCORE | Score submissions per minute | 10 | 10 |
+| RATE_LIMIT_API | API calls per 15 minutes | 100 | 100 |
+| LOG_LEVEL | Logging level (debug/info/warn/error) | info | info |
+
+### Production Deployment Checklist
+
+Before deploying to Railway.io production:
+
+1. ✅ Set `NODE_ENV=production`
+2. ✅ Set `DEMO_MODE=false` (disable demo mode)
+3. ✅ Generate secure `ADMIN_API_KEY`: `openssl rand -hex 32`
+4. ✅ Configure `CORS_ORIGIN` to your frontend domain
+5. ✅ Set `NEXT_PUBLIC_API_URL` and `NEXT_PUBLIC_SOCKET_URL` to backend URL
+6. ✅ Verify Railway Redis service is linked
+7. ✅ Enable health checks (already configured in railway.toml)
+8. ✅ Review rate limiting settings for your expected traffic
 
 ## Project Structure
 
