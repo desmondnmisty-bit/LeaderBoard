@@ -1,4 +1,4 @@
-# Generic Leaderboard MVP - Railway.io Template
+# 4 The Win Leaderboard MVP - Railway.io Template
 
 A real-time leaderboard application built with Express, Socket.io, Redis, and Next.js. Designed for easy deployment on Railway.io with automatic Redis provisioning.
 
