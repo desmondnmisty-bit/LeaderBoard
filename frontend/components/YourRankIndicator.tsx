@@ -14,6 +14,7 @@ export default function YourRankIndicator({ playerId, onPlayerIdChange, activeTa
   const [inputPlayerId, setInputPlayerId] = useState(playerId);
   const [rankData, setRankData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [hasTracked, setHasTracked] = useState(false);
   const { getPlayersAround } = useApi();
 
   useEffect(() => {
@@ -21,7 +22,11 @@ export default function YourRankIndicator({ playerId, onPlayerIdChange, activeTa
   }, [playerId]);
 
   const fetchRank = useCallback(async () => {
-    if (!playerId) return;
+    if (!playerId || playerId.trim() === '') {
+      setRankData(null);
+      setLoading(false);
+      return;
+    }
 
     setLoading(true);
     try {
@@ -38,16 +43,18 @@ export default function YourRankIndicator({ playerId, onPlayerIdChange, activeTa
     }
   }, [playerId, activeTab, getPlayersAround]);
 
+  // Only fetch when user has explicitly tracked OR when activeTab changes after tracking
   useEffect(() => {
-    if (playerId) {
+    if (hasTracked && playerId && playerId.trim() !== '') {
       fetchRank();
     }
-  }, [playerId, activeTab, fetchRank]);
+  }, [activeTab, hasTracked, playerId, fetchRank]);
 
   const handleTrackRank = () => {
     if (inputPlayerId.trim()) {
       onPlayerIdChange(inputPlayerId.trim());
       localStorage.setItem('leaderboard_playerId', inputPlayerId.trim());
+      setHasTracked(true);
     }
   };
 
@@ -56,14 +63,6 @@ export default function YourRankIndicator({ playerId, onPlayerIdChange, activeTa
       handleTrackRank();
     }
   };
-
-  // Load from localStorage on mount
-  useEffect(() => {
-    const savedPlayerId = localStorage.getItem('leaderboard_playerId');
-    if (savedPlayerId && !playerId) {
-      onPlayerIdChange(savedPlayerId);
-    }
-  }, [playerId, onPlayerIdChange]);
 
   return (
     <div className="card p-4">

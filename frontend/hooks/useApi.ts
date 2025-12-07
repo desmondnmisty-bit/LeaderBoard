@@ -97,6 +97,14 @@ export function useApi() {
     range: number = 5,
     timeRange: TimeRange = 'all'
   ): Promise<ApiResponse> => {
+    // Validate playerId before making API call
+    if (!playerId || playerId.trim() === '') {
+      return {
+        success: false,
+        error: { message: 'Player ID is required', code: 400 }
+      };
+    }
+
     try {
       const params = new URLSearchParams({
         range: range.toString(),
