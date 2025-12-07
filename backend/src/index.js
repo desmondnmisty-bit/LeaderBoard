@@ -92,10 +92,8 @@ app.get('/health', asyncHandler(async (req, res) => {
 app.post('/score', scoreSubmissionLimiter, validateScoreSubmission, asyncHandler(async (req, res) => {
   const { playerId, playerName, score, metadata } = req.body;
 
-  // Add to all time ranges, but only publish for 'all' to avoid duplicate notifications
-  const result = await addScore(playerId, playerName, score, metadata, 'all');
-  await addScoreWithoutPublish(playerId, playerName, score, metadata, 'daily');
-  await addScoreWithoutPublish(playerId, playerName, score, metadata, 'weekly');
+  // Add score - this updates all time ranges (all/daily/weekly) in one call
+  const result = await addScore(playerId, playerName, score, metadata);
 
   // Log activity for admin dashboard
   addActivity({
