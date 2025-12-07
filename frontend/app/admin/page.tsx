@@ -36,6 +36,7 @@ interface Activity {
   rank?: number;
   action?: string;
   timeRange?: string;
+  playersAffected?: number;
   timestamp: string;
 }
 

@@ -1,20 +1,31 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  productionBrowserSourceMaps: true, // Enable source maps in production
+  productionBrowserSourceMaps: true,
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
     NEXT_PUBLIC_SOCKET_URL: process.env.NEXT_PUBLIC_SOCKET_URL,
   },
   images: {
-    unoptimized: true, // For Railway.io deployment
+    unoptimized: true,
   },
-  output: 'standalone', // For Railway.io deployment
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
+  swcMinify: true,
   webpack: (config, { dev, isServer }) => {
-    // Enable source maps in development
     if (dev && !isServer) {
       config.devtool = 'eval-source-map';
     }
+    
+    if (!dev && !isServer) {
+      config.optimization = {
+        ...config.optimization,
+        usedExports: true,
+        minimize: true,
+      };
+    }
+    
     return config;
   },
 };
