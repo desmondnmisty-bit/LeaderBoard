@@ -1,6 +1,11 @@
+const Sentry = require('@sentry/node');
+
 const errorHandler = (err, req, res, next) => {
   const timestamp = new Date().toISOString();
   console.error(`[${timestamp}] ${req.method} ${req.path} - Error:`, err);
+
+  // Capture exception in Sentry
+  Sentry.captureException(err);
 
   let statusCode = 500;
   let message = 'Internal server error';

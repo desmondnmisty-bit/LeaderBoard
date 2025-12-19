@@ -20,8 +20,54 @@ const VALID_COUNTRIES = [
 ];
 
 /**
- * GET /player/:id/profile
- * Get full player profile
+ * @swagger
+ * /player/{id}/profile:
+ *   get:
+ *     summary: Get full player profile
+ *     tags: [Player]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The player ID
+ *     responses:
+ *       200:
+ *         description: The player profile
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     playerId:
+ *                       type: string
+ *                     playerName:
+ *                       type: string
+ *                     score:
+ *                       type: number
+ *                     avatarUrl:
+ *                       type: string
+ *                     bio:
+ *                       type: string
+ *                     country:
+ *                       type: string
+ *                     ranks:
+ *                       type: object
+ *                       properties:
+ *                         all:
+ *                           type: integer
+ *                         daily:
+ *                           type: integer
+ *                         weekly:
+ *                           type: integer
+ *       404:
+ *         description: Player not found
  */
 router.get('/:id/profile', asyncHandler(async (req, res) => {
   const playerId = req.params.id;

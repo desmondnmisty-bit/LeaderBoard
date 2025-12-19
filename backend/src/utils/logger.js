@@ -25,7 +25,7 @@ const consoleFormat = winston.format.combine(
 const logger = winston.createLogger({
   level: process.env.LOG_LEVEL || 'info',
   format: logFormat,
-  defaultMeta: { service: 'leaderboard-api' },
+  defaultMeta: { service: 'leaderboard-api', environment: process.env.NODE_ENV },
   transports: [
     // Write all logs with importance level of 'error' or less to error.log
     new winston.transports.File({ 

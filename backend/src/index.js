@@ -3,15 +3,24 @@ const express = require('express');
 const cors = require('cors');
 const http = require('http');
 const logger = require('./utils/logger');
+const Sentry = require('@sentry/node');
+
+// Initialize Sentry
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+  tracesSampleRate: 1.0,
+});
 
 // Add error handlers to prevent crashes
 process.on('uncaughtException', (err) => {
   logger.error('Uncaught Exception:', err);
+  Sentry.captureException(err);
   // Don't exit, just log
 });
 
 process.on('unhandledRejection', (reason, promise) => {
   logger.error('Unhandled Rejection:', { reason, promise });
+  Sentry.captureException(reason);
   // Don't exit, just log
 });
 
@@ -46,6 +55,10 @@ const { router: adminRouter, addActivity } = require('./routes/admin');
 // Player profile routes
 const playerRouter = require('./routes/player');
 
+// Swagger Docs
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpecs = require('./config/swagger');
+
 const app = express();
 const server = http.createServer(app);
 
@@ -77,6 +90,9 @@ app.use(cors({
 
 // Apply general rate limiting to all routes
 app.use(apiLimiter);
+
+// API Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 
 // Health check
 app.get('/health', asyncHandler(async (req, res) => {
