@@ -54,6 +54,8 @@ const { router: adminRouter, addActivity } = require('./routes/admin');
 
 // Player profile routes
 const playerRouter = require('./routes/player');
+const leaderboardRouter = require('./routes/leaderboard');
+const scoreRouter = require('./routes/score');
 
 // Swagger Docs
 const swaggerUi = require('swagger-ui-express');
@@ -104,136 +106,28 @@ app.get('/health', asyncHandler(async (req, res) => {
   });
 }));
 
-// Score submission
-app.post('/score', scoreSubmissionLimiter, validateScoreSubmission, asyncHandler(async (req, res) => {
-  const { playerId, playerName, score, metadata } = req.body;
-
-  // Add score - this updates all time ranges (all/daily/weekly) in one call
-  const result = await addScore(playerId, playerName, score, metadata);
-
-  // Log activity for admin dashboard
-  addActivity({
-    type: 'score',
-    playerId,
-    playerName,
-    score,
-    rank: result.rank
-  });
-
-  res.status(201).json({
-    success: true,
-    data: result
-  });
-}));
-
-// Top players
-app.get('/top/:limit', validateTopLimit, validateTimeRange, asyncHandler(async (req, res) => {
-  const limit = req.limit;
-  const offset = parseInt(req.query.offset) || 0;
-  const timeRange = req.timeRange;
-
-  const players = await getTopPlayers(limit, offset, timeRange);
-
-  res.json({
-    success: true,
-    data: {
-      players,
-      total: players.length,
-      limit,
-      offset,
-      timeRange
-    }
-  });
-}));
-
-// Player rank and nearby
-app.get('/around/:player', validatePlayerId, validateTimeRange, asyncHandler(async (req, res) => {
-  const playerId = req.playerId;
-  const timeRange = req.timeRange;
-
-  let range = parseInt(req.query.range) || 5;
-  if (isNaN(range) || range < 1 || range > 100) {
-    range = 5; // Default to 5 if invalid
-  }
-
-  const playerRank = await getPlayerRank(playerId, timeRange);
-  if (!playerRank) {
-    return res.status(404).json({
-      success: false,
-      error: { message: 'Player not found', code: 404 }
-    });
-  }
-
-  const nearby = await getPlayersAround(playerId, range, timeRange);
-
-  res.json({
-    success: true,
-    data: {
-      player: playerRank,
-      nearby
-    }
-  });
-}));
-
-// Time-based leaderboards
-app.get('/daily', asyncHandler(async (req, res) => {
-  // Always returns the current daily leaderboard, does not accept timeRange override
-  const limit = parseInt(req.query.limit) || 100;
-  const offset = parseInt(req.query.offset) || 0;
-
-  const players = await getTopPlayers(limit, offset, 'daily');
-
-  res.json({
-    success: true,
-    data: {
-      players,
-      total: players.length,
-      limit,
-      offset,
-      timeRange: 'daily'
-    }
-  });
-}));
-
-app.get('/weekly', asyncHandler(async (req, res) => {
-  // Always returns the current weekly leaderboard, does not accept timeRange override
-  const limit = parseInt(req.query.limit) || 100;
-  const offset = parseInt(req.query.offset) || 0;
-
-  const players = await getTopPlayers(limit, offset, 'weekly');
-
-  res.json({
-    success: true,
-    data: {
-      players,
-      total: players.length,
-      limit,
-      offset,
-      timeRange: 'weekly'
-    }
-  });
-}));
-
-app.get('/all', asyncHandler(async (req, res) => {
-  const limit = parseInt(req.query.limit) || 100;
-  const offset = parseInt(req.query.offset) || 0;
-
-  const players = await getTopPlayers(limit, offset, 'all');
-
-  res.json({
-    success: true,
-    data: {
-      players,
-      total: players.length,
-      limit,
-      offset,
-      timeRange: 'all'
-    }
-  });
-}));
-
-// Player profile routes (must be before the DELETE /player/:id route)
+// Mount routes
+app.use('/score', scoreRouter);
+app.use('/leaderboard', leaderboardRouter);
 app.use('/player', playerRouter);
+app.use('/admin', adminRouter);
+
+// Legacy routes for backward compatibility (optional, can be removed if frontend is updated)
+// Mapping old routes to new controllers if needed, or just relying on the new structure.
+// For now, we'll keep the old paths working by redirecting or re-mounting if strictly necessary,
+// but the prompt implies refactoring.
+// Let's assume we want to keep the API surface similar or update the frontend.
+// The frontend uses:
+// /score -> /score (Matches)
+// /top/:limit -> /leaderboard/top/:limit (Changed)
+// /around/:player -> /leaderboard/around/:player (Changed)
+// /daily -> /leaderboard/daily (Changed)
+// /weekly -> /leaderboard/weekly (Changed)
+// /all -> /leaderboard/all (Changed)
+// /player/:id/... -> /player/:id/... (Matches)
+
+// To avoid breaking the frontend immediately, we can alias the old routes to the new routers.
+app.use('/', leaderboardRouter); // This mounts /top, /around, /daily, /weekly, /all at root level
 
 // Delete player (admin) - specific route after the router
 app.delete('/player/:id', validatePlayerId, optionalAuth, asyncHandler(async (req, res) => {
@@ -252,9 +146,6 @@ app.delete('/player/:id', validatePlayerId, optionalAuth, asyncHandler(async (re
     message: 'Player deleted'
   });
 }));
-
-// Admin routes
-app.use('/admin', adminRouter);
 
 // 404 handler
 app.use((req, res) => {

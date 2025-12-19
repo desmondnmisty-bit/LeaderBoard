@@ -120,8 +120,50 @@ router.get('/:id/profile', asyncHandler(async (req, res) => {
 }));
 
 /**
- * PUT /player/:id/profile
- * Update player profile (avatar, bio, country)
+ * @swagger
+ * /player/{id}/profile:
+ *   put:
+ *     summary: Update player profile
+ *     tags: [Player]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The player ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               avatarUrl:
+ *                 type: string
+ *                 description: URL to player avatar (max 500 chars)
+ *               bio:
+ *                 type: string
+ *                 description: Player bio (max 200 chars)
+ *               country:
+ *                 type: string
+ *                 description: ISO 3166-1 alpha-2 country code
+ *     responses:
+ *       200:
+ *         description: Profile updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *       400:
+ *         description: Invalid input
+ *       404:
+ *         description: Player not found
  */
 router.put('/:id/profile', asyncHandler(async (req, res) => {
   const playerId = req.params.id;
@@ -230,8 +272,42 @@ router.put('/:id/profile', asyncHandler(async (req, res) => {
 }));
 
 /**
- * GET /player/:id/stats
- * Get player statistics across all time ranges
+ * @swagger
+ * /player/{id}/stats:
+ *   get:
+ *     summary: Get player statistics
+ *     tags: [Player]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The player ID
+ *     responses:
+ *       200:
+ *         description: Player statistics
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     stats:
+ *                       type: object
+ *                       properties:
+ *                         allTime:
+ *                           type: object
+ *                         daily:
+ *                           type: object
+ *                         weekly:
+ *                           type: object
+ *       404:
+ *         description: Player not found
  */
 router.get('/:id/stats', asyncHandler(async (req, res) => {
   const playerId = req.params.id;
@@ -305,8 +381,49 @@ router.get('/:id/stats', asyncHandler(async (req, res) => {
 }));
 
 /**
- * GET /player/:id/history
- * Get player score history
+ * @swagger
+ * /player/{id}/history:
+ *   get:
+ *     summary: Get player score history
+ *     tags: [Player]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The player ID
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 50
+ *         description: Number of entries to return
+ *       - in: query
+ *         name: offset
+ *         schema:
+ *           type: integer
+ *           default: 0
+ *         description: Pagination offset
+ *     responses:
+ *       200:
+ *         description: Player score history
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     history:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *       404:
+ *         description: Player not found
  */
 router.get('/:id/history', asyncHandler(async (req, res) => {
   const playerId = req.params.id;
