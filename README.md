@@ -1,6 +1,17 @@
 # 4 The Win Leaderboard MVP - Railway.io Template
 
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/YOUR_TEMPLATE_ID?referralCode=YOUR_CODE)
+
 A real-time leaderboard application built with Express, Socket.io, Redis, and Next.js. Designed for easy deployment on Railway.io with automatic Redis provisioning.
+
+> **Note:** This is the **Lite (Open Source)** version. It is perfect for single-game deployments and hackathons.
+>
+> **Looking for the Pro Version?**
+> Check out the [Pro Boilerplate](https://gumroad.com/your-product-link) which includes:
+> - 🔐 **User Authentication** (NextAuth.js)
+> - 🛡️ **Admin Dashboard** (Ban players, delete scores)
+> - 🏢 **Multi-Tenancy** (Host multiple games on one instance)
+> - 🚫 **Anti-Cheat System** (HMAC signature verification)
 
 ## Features
 
