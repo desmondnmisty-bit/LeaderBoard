@@ -11,18 +11,18 @@ import {
   AreaChart
 } from 'recharts';
 import { ScoreHistoryEntry } from '@/lib/types';
+import { useApi } from '@/hooks/useApi';
 
 interface ScoreHistoryChartProps {
   playerId: string;
   height?: number;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-
 export default function ScoreHistoryChart({ playerId, height = 200 }: ScoreHistoryChartProps) {
   const [history, setHistory] = useState<ScoreHistoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { getPlayerHistory } = useApi();
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -30,20 +30,16 @@ export default function ScoreHistoryChart({ playerId, height = 200 }: ScoreHisto
         setLoading(true);
         setError(null);
 
-        const res = await fetch(`${API_URL}/player/${playerId}/history?limit=50`);
+        const res = await getPlayerHistory(playerId, 50);
         
-        if (!res.ok) {
-          if (res.status === 404) {
-            setHistory([]);
-            return;
-          }
-          throw new Error('Failed to fetch history');
-        }
-
-        const data = await res.json();
-        
-        if (data.success && data.data?.history) {
-          setHistory(data.data.history);
+        if (res.success && res.data?.history) {
+          setHistory(res.data.history);
+        } else if (res.error) {
+           if (res.error.code === 404) {
+             setHistory([]);
+           } else {
+             throw new Error(res.error.message);
+           }
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load history');
@@ -55,7 +51,7 @@ export default function ScoreHistoryChart({ playerId, height = 200 }: ScoreHisto
     if (playerId) {
       fetchHistory();
     }
-  }, [playerId]);
+  }, [playerId, getPlayerHistory]);
 
   if (loading) {
     return (
@@ -81,11 +77,10 @@ export default function ScoreHistoryChart({ playerId, height = 200 }: ScoreHisto
     );
   }
 
-  // Format data for chart - use totalScore from new format, fallback to score for old entries
-  const chartData = history.map((entry: any, idx) => ({
+  // Format data for chart
+  const chartData = history.map((entry, idx) => ({
     name: formatDate(entry.timestamp),
-    score: entry.totalScore ?? entry.score,
-    scoreAdded: entry.scoreAdded,
+    score: entry.score,
     index: idx
   }));
 

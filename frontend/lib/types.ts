@@ -11,20 +11,35 @@ export interface Player {
 export interface PlayerProfile {
   playerId: string;
   playerName: string;
+  score: number;
   avatarUrl?: string | null;
   bio?: string | null;
   country?: string | null;
-  createdAt?: string;
-  updatedAt?: string;
+  joinedAt?: string | null;
+  lastUpdated?: string | null;
+  metadata?: Record<string, any>;
+  ranks?: {
+    all?: number | null;
+    daily?: number | null;
+    weekly?: number | null;
+  };
+}
+
+export interface TimeRangeStats {
+  score: number | null;
+  rank: number | null;
+  totalPlayers: number;
+  percentile: number | null;
 }
 
 export interface PlayerStats {
   playerId: string;
-  allTime: { rank: number; score: number } | null;
-  daily: { rank: number; score: number } | null;
-  weekly: { rank: number; score: number } | null;
-  bestRank: number | null;
-  totalGames?: number;
+  playerName: string;
+  stats: {
+    allTime: TimeRangeStats;
+    daily: TimeRangeStats;
+    weekly: TimeRangeStats;
+  };
 }
 
 export interface ScoreHistoryEntry {

@@ -5,19 +5,19 @@ import PlayerAvatar from './PlayerAvatar';
 import CountryFlag from './CountryFlag';
 import ScoreHistoryChart from './ScoreHistoryChart';
 import { PlayerProfile, PlayerStats } from '@/lib/types';
+import { useApi } from '@/hooks/useApi';
 
 interface PlayerProfileModalProps {
   playerId: string;
   onClose: () => void;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-
 export default function PlayerProfileModal({ playerId, onClose }: PlayerProfileModalProps) {
   const [profile, setProfile] = useState<PlayerProfile | null>(null);
   const [stats, setStats] = useState<PlayerStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { getPlayerProfile, getPlayerStats } = useApi();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -26,27 +26,20 @@ export default function PlayerProfileModal({ playerId, onClose }: PlayerProfileM
         setError(null);
 
         const [profileRes, statsRes] = await Promise.all([
-          fetch(`${API_URL}/player/${playerId}/profile`),
-          fetch(`${API_URL}/player/${playerId}/stats`)
+          getPlayerProfile(playerId),
+          getPlayerStats(playerId)
         ]);
 
-        if (!profileRes.ok && profileRes.status !== 404) {
-          throw new Error('Failed to fetch profile');
+        if (profileRes.success && profileRes.data) {
+          setProfile(profileRes.data);
+        } else if (profileRes.error) {
+           // If profile fails, we might still want to show stats if available, 
+           // but usually profile is base. Let's log error.
+           console.error("Profile fetch error:", profileRes.error);
         }
 
-        if (!statsRes.ok) {
-          throw new Error('Failed to fetch stats');
-        }
-
-        const profileData = await profileRes.json();
-        const statsData = await statsRes.json();
-
-        if (profileData.success && profileData.data) {
-          setProfile(profileData.data);
-        }
-
-        if (statsData.success && statsData.data) {
-          setStats(statsData.data);
+        if (statsRes.success && statsRes.data) {
+          setStats(statsRes.data);
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load player data');
@@ -56,7 +49,7 @@ export default function PlayerProfileModal({ playerId, onClose }: PlayerProfileM
     };
 
     fetchData();
-  }, [playerId]);
+  }, [playerId, getPlayerProfile, getPlayerStats]);
 
   // Close on escape key
   useEffect(() => {
@@ -137,18 +130,18 @@ export default function PlayerProfileModal({ playerId, onClose }: PlayerProfileM
                 <div className="grid grid-cols-3 gap-3">
                   <StatCard 
                     label="All Time" 
-                    rank={stats?.allTime?.rank}
-                    score={stats?.allTime?.score}
+                    rank={stats?.stats?.allTime?.rank}
+                    score={stats?.stats?.allTime?.score || undefined}
                   />
                   <StatCard 
                     label="Weekly" 
-                    rank={stats?.weekly?.rank}
-                    score={stats?.weekly?.score}
+                    rank={stats?.stats?.weekly?.rank}
+                    score={stats?.stats?.weekly?.score || undefined}
                   />
                   <StatCard 
                     label="Daily" 
-                    rank={stats?.daily?.rank}
-                    score={stats?.daily?.score}
+                    rank={stats?.stats?.daily?.rank}
+                    score={stats?.stats?.daily?.score || undefined}
                   />
                 </div>
               </div>
@@ -161,19 +154,10 @@ export default function PlayerProfileModal({ playerId, onClose }: PlayerProfileM
                 </div>
               </div>
 
-              {/* Best Rank */}
-              {stats?.bestRank && (
-                <div className="flex items-center justify-center gap-2 py-4 bg-gradient-to-r from-yellow-900/20 to-amber-900/20 border border-yellow-700/30">
-                  <span className="text-yellow-500 text-2xl">🏆</span>
-                  <span className="text-gray-300">Best Rank: </span>
-                  <span className="text-yellow-400 font-bold text-lg">#{stats.bestRank}</span>
-                </div>
-              )}
-
               {/* Member Since */}
-              {profile?.createdAt && (
+              {profile?.joinedAt && (
                 <div className="mt-4 text-center text-gray-500 text-sm">
-                  Member since {new Date(profile.createdAt).toLocaleDateString()}
+                  Member since {new Date(parseInt(profile.joinedAt) > 1000000000000 ? parseInt(profile.joinedAt) : parseInt(profile.joinedAt) * 1000).toLocaleDateString()}
                 </div>
               )}
             </>
@@ -184,7 +168,7 @@ export default function PlayerProfileModal({ playerId, onClose }: PlayerProfileM
   );
 }
 
-function StatCard({ label, rank, score }: { label: string; rank?: number; score?: number }) {
+function StatCard({ label, rank, score }: { label: string; rank?: number | null; score?: number }) {
   return (
     <div className="bg-gray-800 p-3 text-center">
       <div className="text-xs text-gray-400 mb-1">{label}</div>

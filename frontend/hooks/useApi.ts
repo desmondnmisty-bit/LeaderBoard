@@ -49,7 +49,7 @@ export function useApi() {
         timeRange,
       });
 
-      const response = await fetch(`${API_BASE_URL}/top/${limit}?${params}`);
+      const response = await fetch(`${API_BASE_URL}/leaderboard/top/${limit}?${params}`);
       const result = await response.json();
 
       if (!response.ok) {
@@ -72,7 +72,7 @@ export function useApi() {
   const getPlayerRank = useCallback(async (playerId: string, timeRange: TimeRange = 'all'): Promise<ApiResponse> => {
     try {
       const params = new URLSearchParams({ timeRange });
-      const response = await fetch(`${API_BASE_URL}/around/${playerId}?${params}`);
+      const response = await fetch(`${API_BASE_URL}/leaderboard/around/${playerId}?${params}`);
       const result = await response.json();
 
       if (!response.ok) {
@@ -111,7 +111,7 @@ export function useApi() {
         timeRange,
       });
 
-      const response = await fetch(`${API_BASE_URL}/around/${playerId}?${params}`);
+      const response = await fetch(`${API_BASE_URL}/leaderboard/around/${playerId}?${params}`);
       const result = await response.json();
 
       if (!response.ok) {
@@ -124,6 +124,81 @@ export function useApi() {
       return result;
     } catch (error) {
       console.error('API Error (getPlayersAround):', error);
+      return {
+        success: false,
+        error: { message: 'Network error', code: 500 }
+      };
+    }
+  }, []);
+
+  const getPlayerProfile = useCallback(async (playerId: string): Promise<ApiResponse> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/player/${playerId}/profile`);
+      const result = await response.json();
+
+      if (!response.ok) {
+        return {
+          success: false,
+          error: { message: result.error?.message || 'Failed to fetch player profile', code: response.status }
+        };
+      }
+
+      return result;
+    } catch (error) {
+      console.error('API Error (getPlayerProfile):', error);
+      return {
+        success: false,
+        error: { message: 'Network error', code: 500 }
+      };
+    }
+  }, []);
+
+  const getPlayerStats = useCallback(async (playerId: string): Promise<ApiResponse> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/player/${playerId}/stats`);
+      const result = await response.json();
+
+      if (!response.ok) {
+        return {
+          success: false,
+          error: { message: result.error?.message || 'Failed to fetch player stats', code: response.status }
+        };
+      }
+
+      return result;
+    } catch (error) {
+      console.error('API Error (getPlayerStats):', error);
+      return {
+        success: false,
+        error: { message: 'Network error', code: 500 }
+      };
+    }
+  }, []);
+
+  const getPlayerHistory = useCallback(async (
+    playerId: string,
+    limit: number = 50,
+    offset: number = 0
+  ): Promise<ApiResponse> => {
+    try {
+      const params = new URLSearchParams({
+        limit: limit.toString(),
+        offset: offset.toString(),
+      });
+
+      const response = await fetch(`${API_BASE_URL}/player/${playerId}/history?${params}`);
+      const result = await response.json();
+
+      if (!response.ok) {
+        return {
+          success: false,
+          error: { message: result.error?.message || 'Failed to fetch player history', code: response.status }
+        };
+      }
+
+      return result;
+    } catch (error) {
+      console.error('API Error (getPlayerHistory):', error);
       return {
         success: false,
         error: { message: 'Network error', code: 500 }
@@ -162,6 +237,18 @@ export function useApi() {
     getTopPlayers,
     getPlayerRank,
     getPlayersAround,
+    getPlayerProfile,
+    getPlayerStats,
+    getPlayerHistory,
     deletePlayer,
-  }), [submitScore, getTopPlayers, getPlayerRank, getPlayersAround, deletePlayer]);
+  }), [
+    submitScore,
+    getTopPlayers,
+    getPlayerRank,
+    getPlayersAround,
+    getPlayerProfile,
+    getPlayerStats,
+    getPlayerHistory,
+    deletePlayer
+  ]);
 }
