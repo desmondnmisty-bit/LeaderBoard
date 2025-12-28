@@ -66,11 +66,11 @@ export default function PlayerProfileModal({ playerId, onClose }: PlayerProfileM
       onClick={onClose}
     >
       <div 
-        className="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl max-w-lg w-full mx-4 overflow-hidden max-h-[90vh] overflow-y-auto"
+        className="bg-gray-900 border border-gray-700 rounded-sm shadow-2xl max-w-lg w-full mx-4 overflow-hidden max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-900 to-blue-900 p-6">
+        <div className="bg-gradient-to-r from-blue-900 to-blue-900 p-6">
           <div className="flex items-center gap-4">
             <PlayerAvatar 
               avatarUrl={profile?.avatarUrl}
