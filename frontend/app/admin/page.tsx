@@ -48,13 +48,13 @@ interface LeaderboardData {
 }
 
 export default function AdminDashboard() {
-  const [adminKey, setAdminKey] = useState('');
+  const [adminKey, setAdminKey] = useState(process.env.NEXT_PUBLIC_ADMIN_API_KEY || '');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'players' | 'activity'>('overview');
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
   const [activity, setActivity] = useState<Activity[]>([]);
-  const [leaderboards, setLeaderboards] = useState<{all: LeaderboardData; daily: LeaderboardData; weekly: LeaderboardData} | null>(null);
+  const [leaderboards, setLeaderboards] = useState<{ all: LeaderboardData; daily: LeaderboardData; weekly: LeaderboardData } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -63,7 +63,16 @@ export default function AdminDashboard() {
   // Check for stored admin key on mount
   useEffect(() => {
     const storedKey = localStorage.getItem('adminKey');
-    if (storedKey) {
+    const envKey = process.env.NEXT_PUBLIC_ADMIN_API_KEY;
+
+    if (envKey) {
+      // If we have an env key, prefer it, especially if it's different from stored
+      if (storedKey !== envKey) {
+        localStorage.setItem('adminKey', envKey);
+      }
+      setAdminKey(envKey);
+      setIsAuthenticated(true);
+    } else if (storedKey) {
       setAdminKey(storedKey);
       setIsAuthenticated(true);
     }
@@ -109,7 +118,7 @@ export default function AdminDashboard() {
       const url = new URL(`${API_BASE_URL}/admin/players`);
       url.searchParams.set('limit', '50');
       if (searchQuery) url.searchParams.set('search', searchQuery);
-      
+
       const response = await fetch(url.toString(), {
         headers: getHeaders(),
       });
@@ -167,7 +176,7 @@ export default function AdminDashboard() {
   const handleLogin = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const response = await fetch(`${API_BASE_URL}/admin/stats`, {
         headers: {
@@ -175,7 +184,7 @@ export default function AdminDashboard() {
           'X-Admin-Key': adminKey,
         },
       });
-      
+
       if (response.ok) {
         localStorage.setItem('adminKey', adminKey);
         setIsAuthenticated(true);
@@ -208,7 +217,7 @@ export default function AdminDashboard() {
         headers: getHeaders(),
       });
       const data = await response.json();
-      
+
       if (data.success) {
         setSuccessMessage(`Player ${playerId} deleted successfully`);
         fetchPlayers();
@@ -223,10 +232,10 @@ export default function AdminDashboard() {
   };
 
   const handleResetLeaderboard = async (timeRange: string) => {
-    const confirmMessage = timeRange === 'all' 
+    const confirmMessage = timeRange === 'all'
       ? 'This will DELETE ALL DATA. Type "DELETE_ALL_DATA" to confirm.'
       : `Are you sure you want to reset the ${timeRange} leaderboard?`;
-    
+
     if (timeRange === 'all') {
       const input = prompt(confirmMessage);
       if (input !== 'DELETE_ALL_DATA') return;
@@ -241,7 +250,7 @@ export default function AdminDashboard() {
         body: JSON.stringify(timeRange === 'all' ? { confirm: 'DELETE_ALL_DATA' } : {}),
       });
       const data = await response.json();
-      
+
       if (data.success) {
         setSuccessMessage(`${timeRange} leaderboard reset successfully`);
         fetchStats();
@@ -260,7 +269,7 @@ export default function AdminDashboard() {
     const days = Math.floor(seconds / 86400);
     const hours = Math.floor((seconds % 86400) / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
-    
+
     if (days > 0) return `${days}d ${hours}h`;
     if (hours > 0) return `${hours}h ${minutes}m`;
     return `${minutes}m`;
@@ -277,13 +286,13 @@ export default function AdminDashboard() {
       <main className="min-h-screen bg-bg-primary flex items-center justify-center p-4">
         <div className="card p-8 max-w-md w-full">
           <h1 className="text-2xl font-bold text-text-primary mb-6 text-center">Admin Dashboard</h1>
-          
+
           {error && (
             <div className="bg-error/20 border border-error text-error px-4 py-2 rounded mb-4">
               {error}
             </div>
           )}
-          
+
           <div className="space-y-4">
             <div>
               <label className="block text-text-secondary text-sm mb-2">Admin API Key</label>
@@ -339,7 +348,7 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
-      
+
       {successMessage && (
         <div className="max-w-7xl mx-auto px-6 pt-4">
           <div className="bg-success/20 border border-success text-success px-4 py-2 rounded">
@@ -355,11 +364,10 @@ export default function AdminDashboard() {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 rounded font-medium transition-colors ${
-                activeTab === tab
-                  ? 'bg-primary text-white'
-                  : 'bg-bg-secondary text-text-secondary hover:text-text-primary'
-              }`}
+              className={`px-4 py-2 rounded font-medium transition-colors ${activeTab === tab
+                ? 'bg-primary text-white'
+                : 'bg-bg-secondary text-text-secondary hover:text-text-primary'
+                }`}
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
             </button>
@@ -396,9 +404,8 @@ export default function AdminDashboard() {
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-text-secondary">Status</span>
-                    <span className={`px-2 py-1 rounded text-sm ${
-                      stats?.redis.status === 'connected' ? 'bg-success/20 text-success' : 'bg-error/20 text-error'
-                    }`}>
+                    <span className={`px-2 py-1 rounded text-sm ${stats?.redis.status === 'connected' ? 'bg-success/20 text-success' : 'bg-error/20 text-error'
+                      }`}>
                       {stats?.redis.status ?? 'Unknown'}
                     </span>
                   </div>
@@ -453,11 +460,10 @@ export default function AdminDashboard() {
                     </div>
                     <button
                       onClick={() => handleResetLeaderboard(key)}
-                      className={`w-full py-2 rounded text-sm font-medium transition-colors ${
-                        key === 'all'
-                          ? 'bg-error hover:bg-error/90'
-                          : 'bg-accent hover:bg-accent/90'
-                      }`}
+                      className={`w-full py-2 rounded text-sm font-medium transition-colors ${key === 'all'
+                        ? 'bg-error hover:bg-error/90'
+                        : 'bg-accent hover:bg-accent/90'
+                        }`}
                     >
                       Reset {key.charAt(0).toUpperCase() + key.slice(1)}
                     </button>
@@ -501,7 +507,7 @@ export default function AdminDashboard() {
                       <td className="px-4 py-3 text-sm text-text-primary">{player.playerName}</td>
                       <td className="px-4 py-3 text-sm font-medium text-text-primary">{player.score.toLocaleString()}</td>
                       <td className="px-4 py-3 text-sm text-text-secondary">
-                        {Object.keys(player.metadata).length > 0 
+                        {Object.keys(player.metadata).length > 0
                           ? JSON.stringify(player.metadata).slice(0, 30) + '...'
                           : '-'}
                       </td>
@@ -543,11 +549,10 @@ export default function AdminDashboard() {
             <div className="divide-y divide-border-color max-h-[600px] overflow-y-auto">
               {activity.map((item, index) => (
                 <div key={index} className="px-4 py-3 flex items-center gap-4">
-                  <div className={`w-2 h-2 ${
-                    item.type === 'score' ? 'bg-success' :
+                  <div className={`w-2 h-2 ${item.type === 'score' ? 'bg-success' :
                     item.type === 'delete' ? 'bg-error' :
-                    item.type === 'reset' ? 'bg-accent' : 'bg-text-tertiary'
-                  }`} />
+                      item.type === 'reset' ? 'bg-accent' : 'bg-text-tertiary'
+                    }`} />
                   <div className="flex-1">
                     {item.type === 'score' && (
                       <span className="text-text-primary">
