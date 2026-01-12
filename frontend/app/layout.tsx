@@ -42,6 +42,9 @@ const getGoogleFontUrl = (fontFamily?: string) => {
   return `https://fonts.googleapis.com/css2?family=${fontName.replace(/ /g, '+')}:wght@400;500;600;700&display=swap`;
 };
 
+import AnalyticsScript from '../components/AnalyticsScript';
+import AnalyticsProvider from '../components/AnalyticsProvider';
+
 export default function RootLayout({
   children,
 }: {
@@ -90,9 +93,12 @@ export default function RootLayout({
         )}
       </head>
       <body className={inter.className}>
-        <ThemeProvider>
-          {children}
-        </ThemeProvider>
+        <AnalyticsProvider>
+          <ThemeProvider>
+            {children}
+          </ThemeProvider>
+        </AnalyticsProvider>
+        <AnalyticsScript />
       </body>
     </html>
   );

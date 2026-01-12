@@ -91,13 +91,10 @@ if (process.env.NODE_ENV === 'production' && !adminKey) {
 const app = express();
 const server = http.createServer(app);
 
-// Sentry Request Handler must be the first middleware on the app
-if (Sentry.Handlers) {
-  app.use(Sentry.Handlers.requestHandler());
-  // TracingHandler creates a trace for every incoming request
-  app.use(Sentry.Handlers.tracingHandler());
-} else {
-  logger.warn('Sentry.Handlers is undefined - skipping Sentry middleware setup. Check @sentry/node version.');
+// Sentry v8+ handles instrumentation differently (often auto-instrumented via Node options)
+// We remove the deprecated Handlers middleware to fix the warning.
+if (process.env.SENTRY_DSN) {
+  Sentry.setupExpressErrorHandler(app);
 }
 
 // Initialize Socket.io
@@ -198,6 +195,7 @@ app.use('/score', scoreRouter);
 app.use('/leaderboard', leaderboardRouter);
 app.use('/player', playerRouter);
 app.use('/admin', adminRouter);
+app.use('/config', require('./routes/configRoutes'));
 
 // Legacy routes for backward compatibility (optional, can be removed if frontend is updated)
 // Mapping old routes to new controllers if needed, or just relying on the new structure.

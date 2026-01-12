@@ -14,6 +14,15 @@ export default function PlayerSearch({ onSearch }: PlayerSearchProps) {
   // Update parent component when debounced query changes
   React.useEffect(() => {
     onSearch(debouncedQuery);
+
+    // Track search if query exists
+    if (debouncedQuery) {
+      import('../lib/analytics/AnalyticsManager').then(({ analytics }) => {
+        analytics.track('search_player', {
+          query: debouncedQuery
+        });
+      });
+    }
   }, [debouncedQuery, onSearch]);
 
   const clearSearch = () => {

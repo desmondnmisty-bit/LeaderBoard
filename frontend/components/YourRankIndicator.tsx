@@ -55,6 +55,13 @@ export default function YourRankIndicator({ playerId, onPlayerIdChange, activeTa
       onPlayerIdChange(inputPlayerId.trim());
       localStorage.setItem('leaderboard_playerId', inputPlayerId.trim());
       setHasTracked(true);
+
+      import('../lib/analytics/AnalyticsManager').then(({ analytics }) => {
+        analytics.track('check_rank', {
+          playerId: inputPlayerId.trim(),
+          tab: activeTab
+        });
+      });
     }
   };
 

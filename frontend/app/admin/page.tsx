@@ -50,7 +50,7 @@ interface LeaderboardData {
 export default function AdminDashboard() {
   const [adminKey, setAdminKey] = useState(process.env.NEXT_PUBLIC_ADMIN_API_KEY || '');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [activeTab, setActiveTab] = useState<'overview' | 'players' | 'activity'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'players' | 'activity' | 'analytics'>('overview');
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
   const [activity, setActivity] = useState<Activity[]>([]);
@@ -59,6 +59,9 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [gaConfig, setGaConfig] = useState('');
+  const [configLoading, setConfigLoading] = useState(false);
+  const [testStatus, setTestStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
 
   // Check for stored admin key on mount
   useEffect(() => {
@@ -144,6 +147,27 @@ export default function AdminDashboard() {
       console.error('Failed to fetch activity:', err);
     }
   }, [getHeaders]);
+
+  const fetchConfig = useCallback(async () => {
+    setConfigLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/config`);
+      const data = await response.json();
+      if (data.gaMeasurementId) {
+        setGaConfig(data.gaMeasurementId);
+      }
+    } catch (err) {
+      console.error('Failed to fetch config:', err);
+    } finally {
+      setConfigLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'analytics') {
+      fetchConfig();
+    }
+  }, [activeTab, fetchConfig]);
 
   // Fetch data when authenticated
   useEffect(() => {
@@ -360,7 +384,7 @@ export default function AdminDashboard() {
       <div className="max-w-7xl mx-auto px-6 py-6">
         {/* Tabs */}
         <div className="flex space-x-4 mb-6">
-          {(['overview', 'players', 'activity'] as const).map((tab) => (
+          {(['overview', 'players', 'activity', 'analytics'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -534,59 +558,166 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* Activity Tab */}
-        {activeTab === 'activity' && (
-          <div className="card rounded-lg overflow-hidden">
-            <div className="px-4 py-3 bg-bg-tertiary flex justify-between items-center">
-              <span className="font-medium text-text-primary">Recent Activity</span>
-              <button
-                onClick={fetchActivity}
-                className="text-primary hover:text-primary/80 text-sm"
-              >
-                Refresh
-              </button>
+        {/* Analytics Tab */}
+        {activeTab === 'analytics' && (
+          <div className="space-y-6">
+            <div className="card p-6">
+              <h3 className="text-lg font-medium text-text-primary mb-4">Analytics Configuration</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center py-3 border-b border-border-color">
+                    <span className="text-text-secondary">Debug Mode</span>
+                    <span className={`px-2 py-1 rounded text-sm ${process.env.NEXT_PUBLIC_ANALYTICS_DEBUG === 'true'
+                      ? 'bg-success/20 text-success'
+                      : 'bg-text-tertiary/20 text-text-tertiary'
+                      }`}>
+                      {process.env.NEXT_PUBLIC_ANALYTICS_DEBUG === 'true' ? 'Enabled' : 'Disabled'}
+                    </span>
+                  </div>
+
+                  {/* Dynamic GA Config */}
+                  <div className="py-3 border-b border-border-color">
+                    <label className="block text-sm font-medium text-text-secondary mb-2">
+                      Google Analytics Measurement ID
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="G-XXXXXXXXXX"
+                        className="flex-1 bg-bg-primary border border-border-color rounded px-3 py-2 text-text-primary text-sm font-mono"
+                        value={gaConfig || ''}
+                        onChange={(e) => setGaConfig(e.target.value)}
+                        id="ga-id-input"
+                      />
+                      <button
+                        className="bg-primary text-white px-3 py-2 rounded text-sm hover:bg-primary/90 disabled:opacity-50"
+                        disabled={configLoading}
+                        onClick={async () => {
+                          const val = gaConfig.trim();
+                          const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
+                          try {
+                            const res = await fetch(`${apiUrl}/config`, {
+                              method: 'POST',
+                              headers: {
+                                'Content-Type': 'application/json',
+                                'X-Admin-Key': adminKey
+                              },
+                              body: JSON.stringify({ gaMeasurementId: val })
+                            });
+
+                            if (res.ok) {
+                              setSuccessMessage('Configuration saved to Redis! Refresh page to initialize new script.');
+                              setTimeout(() => setSuccessMessage(null), 3000);
+                            } else {
+                              const err = await res.json();
+                              setError('Failed: ' + err.error);
+                            }
+                          } catch (e) {
+                            setError('Network error saving config');
+                          }
+                        }}
+                      >
+                        {configLoading ? '...' : 'Save'}
+                      </button>
+                    </div>
+                    <p className="text-xs text-text-tertiary mt-1">
+                      Current: {gaConfig ? <span className="text-success font-mono">{gaConfig}</span> : <span className="text-text-tertiary">Not Configured</span>}
+                      {configLoading && <span className="ml-2 text-primary">Fetching...</span>}
+                    </p>
+                  </div>
+
+                  <div className="flex justify-between items-center py-3 border-b border-border-color">
+                    <span className="text-text-secondary">Environment Variable</span>
+                    <span className={`px-2 py-1 rounded text-sm ${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID
+                      ? 'bg-success/20 text-success'
+                      : 'bg-text-tertiary/20 text-text-tertiary'
+                      }`}>
+                      {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ? 'Present (Overrides Dynamic)' : 'Not Set'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="bg-bg-tertiary p-4 rounded-lg">
+                  <h4 className="text-sm font-medium text-text-primary mb-3">Test Controls</h4>
+                  <p className="text-sm text-text-secondary mb-4">
+                    Send a test event to verify your analytics providers are receiving data.
+                    Check the console (if Debug enabled) or your GA dashboard.
+                  </p>
+                  <button
+                    onClick={() => {
+                      const win = window as any;
+                      const isGtagLoaded = typeof win.gtag === 'function';
+                      const isDataLayerPresent = Array.isArray(win.dataLayer);
+
+                      // Clear previous status
+                      setTestStatus(null);
+
+                      console.group('Analytics Test Debug');
+                      console.log('Window Config:', {
+                        gtagLoaded: isGtagLoaded,
+                        dataLayerPresent: isDataLayerPresent,
+                        currentConfig: gaConfig,
+                        envID: process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID
+                      });
+
+                      if (!isGtagLoaded && !isDataLayerPresent) {
+                        console.error('CRITICAL: GA Script missing from window.');
+                        setTestStatus({ type: 'error', message: 'Script not missing! Check console.' });
+                        console.groupEnd();
+                        return;
+                      }
+
+                      import('../../lib/analytics/AnalyticsManager').then(({ analytics }) => {
+                        console.log('Triggering track event...');
+                        analytics.track('admin_test_event', {
+                          timestamp: new Date().toISOString(),
+                          adminUser: 'authenticated',
+                          validation: 'manual_trigger'
+                        });
+
+                        // Verify if it was pushed
+                        if (isDataLayerPresent) {
+                          const lastEvent = win.dataLayer[win.dataLayer.length - 1];
+                          console.log('DataLayer Status:', win.dataLayer);
+                          console.log('Last Pushed Event:', lastEvent);
+                          setTestStatus({ type: 'success', message: 'Success! Event pushed to DataLayer.' });
+                        } else {
+                          console.warn('DataLayer not found, checking Console Provider output.');
+                          setTestStatus({ type: 'success', message: 'Event sent (Console Mode)' });
+                        }
+
+                        console.log('Test complete.');
+                        console.groupEnd();
+                        setTimeout(() => setTestStatus(null), 3000);
+                      });
+                    }}
+                    className="w-full bg-primary text-white py-2 rounded hover:bg-primary/90 transition-colors"
+                  >
+                    Send Test Event
+                  </button>
+                  {/* Debug: Check if status is trying to render */}
+                  {testStatus && (
+                    <div className={`mt-2 text-sm text-center ${testStatus.type === 'success' ? 'text-success' : 'text-error'}`}>
+                      {testStatus.message}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
-            <div className="divide-y divide-border-color max-h-[600px] overflow-y-auto">
-              {activity.map((item, index) => (
-                <div key={index} className="px-4 py-3 flex items-center gap-4">
-                  <div className={`w-2 h-2 ${item.type === 'score' ? 'bg-success' :
-                    item.type === 'delete' ? 'bg-error' :
-                      item.type === 'reset' ? 'bg-accent' : 'bg-text-tertiary'
-                    }`} />
-                  <div className="flex-1">
-                    {item.type === 'score' && (
-                      <span className="text-text-primary">
-                        <span className="font-medium">{item.playerName}</span>
-                        <span className="text-text-secondary"> scored </span>
-                        <span className="font-medium">{item.score?.toLocaleString()}</span>
-                        <span className="text-text-secondary"> (Rank #{item.rank})</span>
-                      </span>
-                    )}
-                    {item.type === 'delete' && (
-                      <span className="text-text-primary">
-                        <span className="text-error">Deleted player: </span>
-                        <span className="font-medium">{item.playerId}</span>
-                      </span>
-                    )}
-                    {item.type === 'reset' && (
-                      <span className="text-text-primary">
-                        <span className="text-accent">Reset {item.timeRange} leaderboard</span>
-                        {item.playersAffected && (
-                          <span className="text-text-secondary"> ({item.playersAffected} players affected)</span>
-                        )}
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-text-tertiary text-sm">
-                    {formatTimestamp(item.timestamp)}
-                  </div>
-                </div>
-              ))}
-              {activity.length === 0 && (
-                <div className="px-4 py-8 text-center text-text-tertiary">
-                  No recent activity
-                </div>
-              )}
+
+            <div className="card p-6">
+              <h3 className="text-lg font-medium text-text-primary mb-2">Privacy & Consent</h3>
+              <p className="text-text-secondary text-sm">
+                Current configuration assumes implied consent or "opt-out" logic.
+                Ensure your Privacy Policy reflects that you are tracking:
+              </p>
+              <ul className="list-disc list-inside mt-2 text-sm text-text-secondary space-y-1">
+                <li>Page Views (Navigation)</li>
+                <li>Score Submissions</li>
+                <li>Search Queries (for optimization)</li>
+                <li>Rank Checks</li>
+              </ul>
             </div>
           </div>
         )}

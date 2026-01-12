@@ -59,6 +59,15 @@ export default function ScoreSubmissionForm() {
       });
 
       if (result.success) {
+        // Track analytics
+        import('../lib/analytics/AnalyticsManager').then(({ analytics }) => {
+          analytics.track('score_submitted', {
+            playerId,
+            score: Number(score),
+            hasMetadata: !!metadata
+          });
+        });
+
         setMessage({ type: 'success', text: `Score +${Number(score).toLocaleString()} added! New total: ${result.data?.score?.toLocaleString() || 'N/A'}` });
         setPlayerName('');
         setScore('');
@@ -138,8 +147,8 @@ export default function ScoreSubmissionForm() {
 
       {message && (
         <div className={`mt-4 p-3 rounded-md font-medium ${message.type === 'success'
-            ? 'bg-success text-white border border-success'
-            : 'bg-error text-white border border-error'
+          ? 'bg-success text-white border border-success'
+          : 'bg-error text-white border border-error'
           }`}>
           {message.text}
         </div>
