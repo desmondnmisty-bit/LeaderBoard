@@ -27,9 +27,18 @@ export default function Home() {
       <main className="min-h-screen bg-bg-primary text-text-primary">
         <header className="bg-bg-secondary border-b border-border-color sticky top-0 z-10 will-change-transform">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-text-primary">
-              4 The Win Leaderboard
-            </h1>
+            <div className="flex items-center gap-3">
+              {process.env.NEXT_PUBLIC_LOGO_URL && (
+                <img
+                  src={process.env.NEXT_PUBLIC_LOGO_URL}
+                  alt="Logo"
+                  className="h-8 w-auto object-contain"
+                />
+              )}
+              <h1 className="text-2xl font-bold text-text-primary">
+                {process.env.NEXT_PUBLIC_APP_NAME || '4 The Win Leaderboard'}
+              </h1>
+            </div>
             <ThemeToggle />
           </div>
         </header>
@@ -39,8 +48,8 @@ export default function Home() {
             <p className="text-lg text-text-secondary">
               Real-time rankings with live updates
             </p>
-            <Link 
-              href="/admin" 
+            <Link
+              href="/admin"
               className="inline-block mt-4 text-sm text-text-secondary hover:text-text-primary underline"
             >
               Admin Dashboard →

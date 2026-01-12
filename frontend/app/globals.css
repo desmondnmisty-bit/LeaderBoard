@@ -17,6 +17,7 @@ html.light {
   --color-text-secondary: #4b5563;
   --color-text-tertiary: #9ca3af;
   --color-border: #e5e7eb;
+  --font-family: 'Inter', sans-serif;
 }
 
 /* Dark Theme */
@@ -201,6 +202,7 @@ html.high-contrast {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -211,8 +213,71 @@ html.high-contrast {
     transform: translateY(10px);
     opacity: 0;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;
   }
+}
+
+@keyframes flashGreen {
+  0% {
+    background-color: rgba(16, 185, 129, 0.4);
+  }
+
+  /* green-500/40 */
+  100% {
+    background-color: transparent;
+  }
+}
+
+@keyframes flashRed {
+  0% {
+    background-color: rgba(239, 68, 68, 0.4);
+  }
+
+  /* red-500/40 */
+  100% {
+    background-color: transparent;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes progress {
+  from {
+    width: 100%;
+  }
+
+  to {
+    width: 0%;
+  }
+}
+
+.animate-rank-up {
+  animation: flashGreen 2s ease-out;
+}
+
+.animate-rank-down {
+  animation: flashRed 2s ease-out;
+}
+
+.animate-slide-in {
+  animation: slideInRight 0.3s ease-out forwards;
+}
+
+.animate-toast-progress {
+  animation-name: progress;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
 }

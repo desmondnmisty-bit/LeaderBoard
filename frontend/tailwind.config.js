@@ -36,6 +36,9 @@ module.exports = {
           '100%': { transform: 'translateY(0)', opacity: '1' },
         },
       },
+      fontFamily: {
+        sans: ['var(--font-family)', 'Inter', 'system-ui', 'sans-serif'],
+      },
     },
   },
   plugins: [],

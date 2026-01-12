@@ -6,6 +6,7 @@ import { formatScore, formatRank, getRankColor } from '../lib/utils';
 import PlayerAvatar from './PlayerAvatar';
 import CountryFlag from './CountryFlag';
 import PlayerProfileModal from './PlayerProfileModal';
+import ScoreCounter from './ScoreCounter';
 
 interface LeaderboardTableProps {
   players: Player[];
@@ -26,7 +27,65 @@ export default function LeaderboardTable({
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
 
-  // Filter players based on search query
+  // Track previous ranks for animations
+  const prevRanksRef = useState<Record<string, number>>({})[0];
+  const [animatingRows, setAnimatingRows] = useState<Record<string, 'up' | 'down' | 'new'>>({});
+
+  // Detect rank changes
+  useMemo(() => {
+    const newAnimations: Record<string, 'up' | 'down' | 'new'> = {};
+    let hasChanges = false;
+
+    // Only animate if we already have previous data (prevent animation on initial load)
+    const isInitialLoad = Object.keys(prevRanksRef).length === 0;
+
+    players.forEach((player) => {
+      const prevRank = prevRanksRef[player.playerId];
+
+      if (!isInitialLoad) {
+        if (prevRank === undefined) {
+          // New entry
+          newAnimations[player.playerId] = 'new';
+          hasChanges = true;
+        } else if (player.rank < prevRank) {
+          // Rank up (smaller number is better)
+          newAnimations[player.playerId] = 'up';
+          hasChanges = true;
+        } else if (player.rank > prevRank) {
+          // Rank down
+          newAnimations[player.playerId] = 'down';
+          hasChanges = true;
+        }
+      }
+
+      // Update ref immediately for next comparison
+      prevRanksRef[player.playerId] = player.rank;
+    });
+
+    if (hasChanges) {
+      setAnimatingRows(prev => ({ ...prev, ...newAnimations }));
+
+      // Clear animations after duration
+      setTimeout(() => {
+        setAnimatingRows({});
+      }, 2000);
+    }
+  }, [players, prevRanksRef]); // Intentionally using Memo for immediate side-effect before render or Effect
+
+  const getAnimationClass = (playerId: string) => {
+    const type = animatingRows[playerId];
+    if (type === 'up') return 'animate-rank-up';
+    if (type === 'down') return 'animate-rank-down';
+    if (type === 'new') return 'animate-slide-in';
+    return '';
+  };
+
+  const getRowStyle = (type?: 'up' | 'down' | 'new') => {
+    if (type === 'up') return { backgroundColor: 'rgba(16, 185, 129, 0.1)' };
+    if (type === 'down') return { backgroundColor: 'rgba(239, 68, 68, 0.1)' };
+    return {};
+  };
+
   const filteredPlayers = useMemo(() => {
     if (!searchQuery) return players;
 
@@ -54,7 +113,7 @@ export default function LeaderboardTable({
     setCurrentPage(1); // Reset to first page when changing page size
   };
 
-  if (loading) {
+  if (loading && players.length === 0) {
     return (
       <div className="card p-8 text-center">
         <div className="animate-pulse">
@@ -70,7 +129,7 @@ export default function LeaderboardTable({
     );
   }
 
-  if (filteredPlayers.length === 0) {
+  if (filteredPlayers.length === 0 && !loading) {
     return (
       <div className="card p-8 text-center">
         <div className="text-text-tertiary text-lg mb-2">🏆</div>
@@ -123,14 +182,23 @@ export default function LeaderboardTable({
               <tr
                 key={player.playerId}
                 className={`table-row cursor-pointer transition-colors active:bg-bg-tertiary ${player.playerId === currentPlayerId ? 'bg-primary/5 border-l-4 border-primary' : ''
-                  }`}
+                  } ${getAnimationClass(player.playerId)}`}
                 onClick={() => setSelectedPlayerId(player.playerId)}
               >
                 <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center justify-center">
+                  <div className="flex items-center justify-center gap-1">
                     <span className={`text-base sm:text-lg font-bold ${getRankColor(player.rank)}`}>
                       {formatRank(player.rank)}
                     </span>
+                    {animatingRows[player.playerId] === 'up' && (
+                      <span className="text-success text-xs animate-bounce">▲</span>
+                    )}
+                    {animatingRows[player.playerId] === 'down' && (
+                      <span className="text-error text-xs animate-bounce">▼</span>
+                    )}
+                    {animatingRows[player.playerId] === 'new' && (
+                      <span className="bg-success text-white text-[10px] px-1 rounded ml-1 animate-pulse">NEW</span>
+                    )}
                   </div>
                 </td>
                 <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
@@ -155,7 +223,7 @@ export default function LeaderboardTable({
                 </td>
                 <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                   <div className="text-sm font-medium text-text-primary">
-                    {formatScore(player.score)}
+                    <ScoreCounter value={player.score} />
                   </div>
                 </td>
                 <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-text-secondary" onClick={(e) => e.stopPropagation()}>

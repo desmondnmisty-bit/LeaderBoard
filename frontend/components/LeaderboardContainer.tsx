@@ -9,11 +9,15 @@ import PlayerSearch from './PlayerSearch';
 import LeaderboardTable from './LeaderboardTable';
 import YourRankIndicator from './YourRankIndicator';
 
-export default function LeaderboardContainer() {
+import { ToastProvider, useToast } from './Toast';
+
+// Internal component to use toast hook
+function LeaderboardContent() {
   const { players, activeTab, setActiveTab, updatePlayers, loading, error } = useLeaderboard();
   const { socket, isConnected, joinPlayerRoom } = useSocket();
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPlayerId, setCurrentPlayerId] = useState<string>('');
+  const { addToast } = useToast();
 
   useEffect(() => {
     if (socket && isConnected) {
@@ -26,9 +30,17 @@ export default function LeaderboardContainer() {
 
       // Listen for personal updates
       const handlePlayerUpdate = (data: any) => {
-        // Update player's rank in context if it's the current player
         if (data.playerId === currentPlayerId) {
-          // This would update the rank indicator
+          const ranks = data.ranks || {};
+          const newRank = ranks[activeTab];
+          if (newRank) {
+            addToast({
+              type: 'info',
+              title: 'Rank Updated',
+              message: `You are now #${newRank} in ${activeTab} leaderboard!`,
+              duration: 4000
+            });
+          }
         }
       };
 
@@ -40,10 +52,9 @@ export default function LeaderboardContainer() {
         socket.off('player-update', handlePlayerUpdate);
       };
     }
-  }, [socket, isConnected, activeTab, updatePlayers, currentPlayerId]);
+  }, [socket, isConnected, activeTab, updatePlayers, currentPlayerId, addToast]);
 
   useEffect(() => {
-    // Join player room when currentPlayerId changes
     if (currentPlayerId && isConnected) {
       joinPlayerRoom(currentPlayerId);
     }
@@ -54,8 +65,8 @@ export default function LeaderboardContainer() {
       {/* Connection Status */}
       <div className="flex justify-end">
         <div className={`px-4 py-2 text-sm font-medium text-white rounded-full transition-colors ${isConnected
-            ? 'bg-success shadow-sm'
-            : 'bg-error shadow-sm'
+          ? 'bg-success shadow-sm'
+          : 'bg-error shadow-sm'
           }`}>
           {isConnected ? '● Connected' : '○ Disconnected'}
         </div>
@@ -93,5 +104,13 @@ export default function LeaderboardContainer() {
         loading={loading}
       />
     </div>
+  );
+}
+
+export default function LeaderboardContainer() {
+  return (
+    <ToastProvider>
+      <LeaderboardContent />
+    </ToastProvider>
   );
 }

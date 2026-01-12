@@ -182,6 +182,33 @@ The application is designed to scale horizontally to handle high traffic loads.
 1. **Node.js Clustering**: Use PM2 to run multiple worker processes on a single server (utilize all CPU cores).
 2. **Multi-Instance**: Run multiple server instances behind a load balancer (Requires Redis Pub/Sub for syncing).
 
+### Theme Customization
+
+You can customize the look and feel (white-labeling) using environment variables without changing code.
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `NEXT_PUBLIC_APP_NAME` | The name displayed in the header and title | "4 The Win Leaderboard" |
+| `NEXT_PUBLIC_LOGO_URL` | URL to a logo image (displayed left of title) | None |
+| `NEXT_PUBLIC_PRIMARY_COLOR` | Primary brand color (Hex) | `#1d4ed8` (Blue) |
+| `NEXT_PUBLIC_SECONDARY_COLOR` | Secondary/Accent color (Hex) | `#64748b` (Slate) |
+| `NEXT_PUBLIC_FONT_FAMILY` | Custom font stack | `'Inter', sans-serif` |
+
+**Example `.env.local` for a Gaming Theme:**
+```bash
+NEXT_PUBLIC_APP_NAME="Cyber Arena"
+NEXT_PUBLIC_PRIMARY_COLOR="#ef4444"
+NEXT_PUBLIC_SECONDARY_COLOR="#f59e0b"
+NEXT_PUBLIC_LOGO_URL="https://example.com/logo.png"
+NEXT_PUBLIC_FONT_FAMILY="'Roboto Mono', monospace"
+```
+
+## Scaling & Performance
+
+Scale horizontally by running multiple backend instances and using a load balancer (e.g., Nginx, Railway).
+
+[Read the detailed Scaling Guide](docs/SCALING.md)
+
 For detailed configuration guides, benchmarks, and deployment examples, see [docs/SCALING.md](docs/SCALING.md).
 
 ## Project Structure
