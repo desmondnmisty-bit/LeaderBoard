@@ -124,7 +124,7 @@ export default function RootLayout({
     primaryColor && `--color-primary: ${primaryColor} !important;`,
     secondaryColor && [
       `--color-secondary: ${secondaryColor} !important;`,
-      `--color-text-secondary: ${secondaryColor} !important;`, // Tint subtitles/icons
+      // `--color-text-secondary: ${secondaryColor} !important;`, // Removed to preserve accessible text contrast from globals.css
       `--color-border: ${secondaryColor} !important;`          // Tint borders
     ].join('\n'),
     fontFamily && `--font-family: ${fontFamily} !important;`,
@@ -134,6 +134,7 @@ export default function RootLayout({
     <html lang="en">
       <head>
         {appName && <title>{appName}</title>}
+        <link rel="manifest" href="/manifest.json" />
         {googleFontUrl && (
           <>
             <link rel="preconnect" href="https://fonts.googleapis.com" />

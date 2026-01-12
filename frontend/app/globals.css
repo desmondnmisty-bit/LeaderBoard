@@ -6,7 +6,7 @@
 :root,
 html.light {
   --color-primary: #1d4ed8;
-  --color-secondary: #64748b;
+  --color-secondary: #475569; /* Darkened from #64748b */
   --color-accent: #d97706;
   --color-success: #059669;
   --color-error: #dc2626;
@@ -14,26 +14,26 @@ html.light {
   --color-bg-secondary: #f9fafb;
   --color-bg-tertiary: #f3f4f6;
   --color-text-primary: #111827;
-  --color-text-secondary: #4b5563;
-  --color-text-tertiary: #9ca3af;
+  --color-text-secondary: #374151; /* Darkened from #4b5563 (Gray 700) */
+  --color-text-tertiary: #6b7280; /* Darkened from #9ca3af (Gray 500) */
   --color-border: #e5e7eb;
   --font-family: 'Inter', sans-serif;
 }
 
 /* Dark Theme */
 html.dark {
-  --color-primary: #1e40af;
-  --color-secondary: #cbd5e1;
-  --color-accent: #b45309;
-  --color-success: #047857;
-  --color-error: #991b1b;
+  --color-primary: #60a5fa; /* Lightened from #1e40af (Blue 400) for contrast on dark bg */
+  --color-secondary: #e2e8f0; /* Lightened from #cbd5e1 */
+  --color-accent: #fbbf24; /* Lightened accent for dark mode */
+  --color-success: #34d399; /* Lightened success */
+  --color-error: #f87171; /* Lightened error */
   --color-bg-primary: #111827;
   --color-bg-secondary: #1f2937;
   --color-bg-tertiary: #374151;
   --color-text-primary: #f9fafb;
-  --color-text-secondary: #d1d5db;
-  --color-text-tertiary: #9ca3af;
-  --color-border: #374151;
+  --color-text-secondary: #e5e7eb; /* Lightened from #d1d5db (Gray 200) */
+  --color-text-tertiary: #d1d5db; /* Lightened from #9ca3af (Gray 300) */
+  --color-border: #4b5563; /* Lightened border */
 }
 
 /* High Contrast Theme */

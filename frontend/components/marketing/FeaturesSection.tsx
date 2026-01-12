@@ -23,7 +23,7 @@ export default function FeaturesSection() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {features.map((feature, idx) => (
                         <div key={idx} className="card p-6 hover:border-primary/50 transition-colors duration-300">
-                            <h3 className="text-xl font-bold text-text-primary mb-2">{feature.title}</h3>
+                            <h2 className="text-xl font-bold text-text-primary mb-2">{feature.title}</h2>
                             <p className="text-text-secondary leading-relaxed">
                                 {feature.description}
                             </p>

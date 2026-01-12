@@ -4,10 +4,10 @@ export default function HeroSection() {
     return (
         <section className="relative overflow-hidden py-8 sm:py-24">
             <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-text-primary mb-6">
-                    <span className="block">Compete in Real-Time</span>
-                    <span className="block text-primary">Dominate the Leaderboard</span>
-                </h1>
+                <h2 className="text-4xl font-extrabold tracking-tight text-text-primary mb-6">
+                    <span className="block m-3">Compete in Real-Time</span>
+                    <span className="block m-3">Dominate the Leaderboard</span>
+                </h2>
                 <p className="mt-4 text-xl text-text-secondary max-w-2xl mx-auto mb-10">
                     Experience the thrill of live updates. Watch ranks change instantly as scores roll in.
                     Secure, fast, and built for the modern web.

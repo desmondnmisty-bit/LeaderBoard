@@ -20,11 +20,11 @@ export default function ThemeToggle() {
           key={t}
           onClick={() => setTheme(t)}
           title={`Switch to ${t} mode`}
-          className={`px-3 py-1 rounded transition-all text-sm font-medium ${
-            theme === t
+          aria-label={`Switch to ${themeLabels[t]} mode`}
+          className={`px-3 py-1 rounded transition-all text-sm font-medium ${theme === t
               ? 'theme-toggle-active'
               : 'theme-toggle-inactive'
-          }`}
+            }`}
         >
           {themeLabels[t]}
         </button>

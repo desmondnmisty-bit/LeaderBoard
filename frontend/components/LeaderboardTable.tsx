@@ -160,19 +160,19 @@ export default function LeaderboardTable({
         <table className="min-w-full divide-y divide-border-color">
           <thead className="table-header sticky top-0 z-10 shadow-sm">
             <tr>
-              <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider w-12 sm:w-20">
+              <th scope="col" className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider w-12 sm:w-20">
                 Rank
               </th>
-              <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
+              <th scope="col" className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
                 Player
               </th>
-              <th className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider w-16">
+              <th scope="col" className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider w-16">
                 Country
               </th>
-              <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider w-24 sm:w-32">
+              <th scope="col" className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider w-24 sm:w-32">
                 Score
               </th>
-              <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
+              <th scope="col" className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
                 Details
               </th>
             </tr>
@@ -249,7 +249,7 @@ export default function LeaderboardTable({
       {/* Pagination */}
       <div className="px-6 py-4 border-t border-border-color flex items-center justify-between bg-bg-secondary">
         <div className="flex items-center space-x-2">
-          <label htmlFor="pageSize" className="text-sm text-text-primary">Show:</label>
+          <label htmlFor="pageSize" className="text-sm text-text-primary sr-only">Show:</label>
           <select
             id="pageSize"
             value={pageSize}
@@ -270,11 +270,15 @@ export default function LeaderboardTable({
             disabled={currentPage === 1}
             className="px-3 py-1 border border-border-color rounded text-sm hover:bg-bg-tertiary text-text-primary disabled:opacity-50 disabled:cursor-not-allowed focus-ring"
           >
-            Previous
+            Prev
           </button>
 
-          <span className="text-sm text-text-primary">
-            Page {currentPage} of {totalPages}
+          <span className="text-sm text-text-primary sr-only">
+            Page
+          </span>
+
+          <span className="text-sm text-text-primary ">
+            {currentPage} of {totalPages}
           </span>
 
           <button

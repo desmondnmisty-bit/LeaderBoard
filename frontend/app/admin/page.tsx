@@ -383,12 +383,16 @@ export default function AdminDashboard() {
 
       <div className="max-w-7xl mx-auto px-6 py-6">
         {/* Tabs */}
-        <div className="flex space-x-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
+        <div className="flex space-x-2 mb-6 overflow-x-auto pb-2 scrollbar-hide" role="tablist" aria-label="Admin Sections">
           {(['overview', 'players', 'activity', 'analytics'] as const).map((tab) => (
             <button
               key={tab}
+              role="tab"
+              aria-selected={activeTab === tab}
+              aria-controls={`${tab}-panel`}
+              id={`${tab}-tab`}
               onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 rounded-full font-medium transition-colors whitespace-nowrap text-sm ${activeTab === tab
+              className={`px-4 py-2 rounded font-medium transition-colors whitespace-nowrap text-sm ${activeTab === tab
                 ? 'bg-primary text-white shadow-md'
                 : 'bg-bg-tertiary text-text-secondary hover:bg-bg-secondary hover:text-text-primary'
                 }`}
@@ -400,7 +404,7 @@ export default function AdminDashboard() {
 
         {/* Overview Tab */}
         {activeTab === 'overview' && (
-          <div className="space-y-6">
+          <div className="space-y-6" role="tabpanel" id="overview-panel" aria-labelledby="overview-tab">
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="card p-6">
@@ -453,7 +457,7 @@ export default function AdminDashboard() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-text-secondary">Environment</span>
-                    <span className="px-2 py-1 rounded text-sm bg-primary/20 text-primary">
+                    <span className="py-1 rounded text-sm bg-primary/20 text-red-700">
                       {process.env.NODE_ENV || 'development'}
                     </span>
                   </div>
@@ -500,13 +504,14 @@ export default function AdminDashboard() {
 
         {/* Players Tab */}
         {activeTab === 'players' && (
-          <div className="space-y-4">
+          <div className="space-y-4" role="tabpanel" id="players-panel" aria-labelledby="players-tab">
             <div className="flex gap-4">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search players..."
+                aria-label="Search players by name or ID"
                 className="input-field flex-1 rounded px-4 py-2"
               />
             </div>
@@ -517,12 +522,12 @@ export default function AdminDashboard() {
                 <table className="w-full whitespace-nowrap">
                   <thead className="table-header">
                     <tr>
-                      <th className="px-4 py-3 text-left text-sm font-medium">Rank</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium">Player ID</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium">Name</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium">Score</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium">Metadata</th>
-                      <th className="px-4 py-3 text-right text-sm font-medium">Actions</th>
+                      <th scope="col" className="px-4 py-3 text-left text-sm font-medium">Rank</th>
+                      <th scope="col" className="px-4 py-3 text-left text-sm font-medium">Player ID</th>
+                      <th scope="col" className="px-4 py-3 text-left text-sm font-medium">Name</th>
+                      <th scope="col" className="px-4 py-3 text-left text-sm font-medium">Score</th>
+                      <th scope="col" className="px-4 py-3 text-left text-sm font-medium">Metadata</th>
+                      <th scope="col" className="px-4 py-3 text-right text-sm font-medium">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border-color">
@@ -541,6 +546,7 @@ export default function AdminDashboard() {
                           <button
                             onClick={() => handleDeletePlayer(player.playerId)}
                             className="text-error hover:text-error/80 text-sm"
+                            aria-label={`Delete player ${player.playerName}`}
                           >
                             Delete
                           </button>

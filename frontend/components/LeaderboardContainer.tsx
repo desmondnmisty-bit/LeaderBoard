@@ -64,7 +64,7 @@ function LeaderboardContent() {
     <div className="space-y-6">
       {/* Connection Status */}
       <div className="flex justify-end">
-        <div className={`px-4 py-2 text-sm font-medium text-white rounded-md transition-colors ${isConnected
+        <div className={`px-4 py-2 text-sm font-medium text-gray-800 rounded-md transition-colors ${isConnected
           ? 'bg-success shadow-sm'
           : 'bg-error shadow-sm'
           }`}>

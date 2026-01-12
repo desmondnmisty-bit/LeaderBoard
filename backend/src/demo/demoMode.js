@@ -1,4 +1,5 @@
 const { addScore } = require('../utils/leaderboard');
+const { addActivity } = require('../routes/admin');
 const { redis } = require('../config/redis');
 const logger = require('../utils/logger');
 
@@ -61,7 +62,17 @@ const startDemoMode = async () => {
         logger.debug(`Demo mode: Adding score ${score} for ${player.name}`);
 
         // Only call once - addScore handles all time ranges internally
-        await addScore(player.id, player.name, score, metadata);
+        const result = await addScore(player.id, player.name, score, metadata);
+
+        // Log activity
+        addActivity({
+          type: 'score',
+          playerId: player.id,
+          playerName: player.name,
+          score,
+          rank: result.rank,
+          // Mark as demo data if we want to distinguish, but for now just show it
+        });
       }
       logger.debug('Demo mode: Score generation complete');
     } catch (error) {

@@ -87,7 +87,7 @@ export default function YourRankIndicator({ playerId, onPlayerIdChange, activeTa
           />
           <button
             onClick={handleTrackRank}
-            className="px-4 py-2 bg-accent text-white rounded-md hover:bg-accent/90 transition-colors focus-ring"
+            className="px-4 py-2 bg-accent text-gray-800 rounded-md hover:bg-accent/90 transition-colors focus-ring"
           >
             Track
           </button>
