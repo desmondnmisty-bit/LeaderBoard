@@ -71,20 +71,21 @@ interface CountryFlagProps {
   country: string | null | undefined;
   size?: 'sm' | 'md' | 'lg';
   showName?: boolean;
+  className?: string; // Add className
 }
 
-export default function CountryFlag({ country, size = 'md', showName = false }: CountryFlagProps) {
+export default function CountryFlag({ country, size = 'md', showName = false, className = '' }: CountryFlagProps) {
   if (!country) return null;
 
   // Normalize country input
   const normalizedCountry = country.toLowerCase().trim();
-  const countryCode = COUNTRY_CODES[normalizedCountry] || 
+  const countryCode = COUNTRY_CODES[normalizedCountry] ||
     (normalizedCountry.length === 2 ? normalizedCountry.toUpperCase() : null);
 
   if (!countryCode) return null;
 
   const flag = countryToFlag(countryCode);
-  
+
   const sizeClasses = {
     sm: 'text-sm',
     md: 'text-base',
@@ -92,8 +93,8 @@ export default function CountryFlag({ country, size = 'md', showName = false }: 
   };
 
   return (
-    <span 
-      className={`inline-flex items-center gap-1 ${sizeClasses[size]}`}
+    <span
+      className={`inline-flex items-center gap-1 ${sizeClasses[size]} ${className}`}
       title={country}
     >
       <span role="img" aria-label={`${country} flag`}>{flag}</span>

@@ -97,75 +97,74 @@ export default function LeaderboardTable({
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto relative">
         <table className="min-w-full divide-y divide-border-color">
-          <thead className="table-header">
+          <thead className="table-header sticky top-0 z-10 shadow-sm">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider w-20">
+              <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider w-12 sm:w-20">
                 Rank
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
+              <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
                 Player
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider w-16">
+              <th className="hidden sm:table-cell px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider w-16">
                 Country
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider w-32">
+              <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider w-24 sm:w-32">
                 Score
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
+              <th className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
                 Details
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-border-color">
+          <tbody className="divide-y divide-border-color bg-bg-primary">
             {paginatedPlayers.map((player) => (
               <tr
                 key={player.playerId}
-                className={`table-row cursor-pointer ${
-                  player.playerId === currentPlayerId ? 'bg-primary/10 border-l-4 border-primary' : ''
-                }`}
+                className={`table-row cursor-pointer transition-colors active:bg-bg-tertiary ${player.playerId === currentPlayerId ? 'bg-primary/5 border-l-4 border-primary' : ''
+                  }`}
                 onClick={() => setSelectedPlayerId(player.playerId)}
               >
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center">
-                    <span className={`text-lg font-bold ${getRankColor(player.rank)}`}>
+                <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center justify-center">
+                    <span className={`text-base sm:text-lg font-bold ${getRankColor(player.rank)}`}>
                       {formatRank(player.rank)}
                     </span>
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center gap-3">
-                    <PlayerAvatar 
+                    <PlayerAvatar
                       avatarUrl={player.avatarUrl}
                       playerName={player.playerName}
-                      size="md"
+                      size="sm"
                     />
-                    <div>
-                      <div className="text-sm font-medium text-text-primary">
+                    <div className="flex flex-col">
+                      <div className="text-sm font-medium text-text-primary truncate max-w-[120px] sm:max-w-none">
                         {player.playerName}
                       </div>
-                      <div className="text-sm text-text-secondary">
-                        {player.playerId}
+                      <div className="text-xs text-text-tertiary sm:hidden">
+                        {player.country && <CountryFlag country={player.country} size="sm" className="inline mr-1" />}
                       </div>
                     </div>
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="hidden sm:table-cell px-6 py-4 whitespace-nowrap">
                   <CountryFlag country={player.country} size="md" />
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                   <div className="text-sm font-medium text-text-primary">
                     {formatScore(player.score)}
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-text-secondary" onClick={(e) => e.stopPropagation()}>
+                <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm text-text-secondary" onClick={(e) => e.stopPropagation()}>
                   {player.metadata && Object.keys(player.metadata).length > 0 ? (
                     <details className="cursor-pointer">
-                      <summary className="hover:text-text-primary">
+                      <summary className="hover:text-text-primary select-none">
                         {Object.keys(player.metadata).length} fields
                       </summary>
-                      <pre className="mt-2 text-xs bg-bg-secondary p-2 rounded overflow-x-auto text-text-primary">
+                      <pre className="mt-2 text-xs bg-bg-secondary p-2 rounded overflow-x-auto text-text-primary max-w-xs">
                         {JSON.stringify(player.metadata, null, 2)}
                       </pre>
                     </details>
@@ -222,9 +221,9 @@ export default function LeaderboardTable({
 
       {/* Player Profile Modal */}
       {selectedPlayerId && (
-        <PlayerProfileModal 
-          playerId={selectedPlayerId} 
-          onClose={() => setSelectedPlayerId(null)} 
+        <PlayerProfileModal
+          playerId={selectedPlayerId}
+          onClose={() => setSelectedPlayerId(null)}
         />
       )}
     </div>

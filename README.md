@@ -141,6 +141,48 @@ ADMIN_API_KEY=your_generated_key_here
 - Review admin operation logs regularly (`logs/combined.log`)
 - Set up alerts for failed authentication attempts (logged as warnings)
 - Monitor for unusual admin activity patterns
+- Check Sentry dashboard for error reports and performance issues
+
+## Sentry Error Monitoring
+
+The application is configured with Sentry for error tracking and performance monitoring.
+
+### Setup
+1. Create a project in [Sentry.io](https://sentry.io)
+2. Get your DSN from Project Settings > Client Keys (DSN)
+3. Add the DSN to your environment variables:
+
+**Backend (.env):**
+```bash
+SENTRY_DSN=https://your-backend-dsn-url
+```
+
+**Frontend (.env.local):**
+```bash
+NEXT_PUBLIC_SENTRY_DSN=https://your-frontend-dsn-url
+```
+
+### Features
+- **Error Tracking**: Captures unhandled exceptions in Express and React
+- **Performance**: Monitor API response times and page load performance
+- **Sanitization**: Sensitive headers (Authorization, X-Admin-API-Key) are stripped from reports
+- **Context**: Errors include request context, environment tags, and user IDs
+
+- **Context**: Errors include request context, environment tags, and user IDs
+
+## Scaling & Performance
+
+The application is designed to scale horizontally to handle high traffic loads.
+
+### When to Scale
+- **Vertical Scaling**: Increase CPU/RAM when single instance hits 80% utilization.
+- **Horizontal Scaling**: Add instances when approaching 5,000 req/sec or 5,000 concurrent socket connections.
+
+### Options
+1. **Node.js Clustering**: Use PM2 to run multiple worker processes on a single server (utilize all CPU cores).
+2. **Multi-Instance**: Run multiple server instances behind a load balancer (Requires Redis Pub/Sub for syncing).
+
+For detailed configuration guides, benchmarks, and deployment examples, see [docs/SCALING.md](docs/SCALING.md).
 
 ## Project Structure
 

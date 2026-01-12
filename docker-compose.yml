@@ -14,3 +14,16 @@ services:
 
 volumes:
   redis_data:
+
+# Scaling Example (Optional)
+# To run multiple backend instances, uncomment below and use Nginx to load balance
+# 
+#  backend-worker:
+#    build: ./backend
+#    environment:
+#      - REDIS_URL=redis://redis:6379
+#      - PORT=3002
+#    ports:
+#      - "3002:3002"
+#    depends_on:
+#      - redis

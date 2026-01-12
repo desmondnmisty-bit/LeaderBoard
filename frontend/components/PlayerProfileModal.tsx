@@ -33,9 +33,9 @@ export default function PlayerProfileModal({ playerId, onClose }: PlayerProfileM
         if (profileRes.success && profileRes.data) {
           setProfile(profileRes.data);
         } else if (profileRes.error) {
-           // If profile fails, we might still want to show stats if available, 
-           // but usually profile is base. Let's log error.
-           console.error("Profile fetch error:", profileRes.error);
+          // If profile fails, we might still want to show stats if available, 
+          // but usually profile is base. Let's log error.
+          console.error("Profile fetch error:", profileRes.error);
         }
 
         if (statsRes.success && statsRes.data) {
@@ -61,18 +61,18 @@ export default function PlayerProfileModal({ playerId, onClose }: PlayerProfileM
   }, [onClose]);
 
   return (
-    <div 
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+    <div
+      className="fixed inset-0 z-50 flex sm:items-center justify-center bg-black/50 backdrop-blur-sm"
       onClick={onClose}
     >
-      <div 
-        className="bg-gray-900 border border-gray-700 rounded-sm shadow-2xl max-w-lg w-full mx-4 overflow-hidden max-h-[90vh] overflow-y-auto"
+      <div
+        className="bg-gray-900 sm:border border-gray-700 w-full h-full sm:h-auto sm:rounded-sm shadow-2xl sm:max-w-lg overflow-hidden flex flex-col sm:max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-900 to-blue-900 p-6">
           <div className="flex items-center gap-4">
-            <PlayerAvatar 
+            <PlayerAvatar
               avatarUrl={profile?.avatarUrl}
               playerName={profile?.playerName || playerId}
               size="xl"
@@ -101,7 +101,7 @@ export default function PlayerProfileModal({ playerId, onClose }: PlayerProfileM
         </div>
 
         {/* Content */}
-        <div className="p-6">
+        <div className="p-6 overflow-y-auto flex-1">
           {loading && (
             <div className="flex justify-center py-8">
               <div className="animate-spin h-8 w-8 border-b-2 border-purple-500"></div>
@@ -128,18 +128,18 @@ export default function PlayerProfileModal({ playerId, onClose }: PlayerProfileM
               <div className="mb-6">
                 <h3 className="text-sm font-medium text-gray-400 mb-3">Rankings</h3>
                 <div className="grid grid-cols-3 gap-3">
-                  <StatCard 
-                    label="All Time" 
+                  <StatCard
+                    label="All Time"
                     rank={stats?.stats?.allTime?.rank}
                     score={stats?.stats?.allTime?.score || undefined}
                   />
-                  <StatCard 
-                    label="Weekly" 
+                  <StatCard
+                    label="Weekly"
                     rank={stats?.stats?.weekly?.rank}
                     score={stats?.stats?.weekly?.score || undefined}
                   />
-                  <StatCard 
-                    label="Daily" 
+                  <StatCard
+                    label="Daily"
                     rank={stats?.stats?.daily?.rank}
                     score={stats?.stats?.daily?.score || undefined}
                   />

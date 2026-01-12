@@ -70,7 +70,8 @@ const addScoreInternal = async ({
   publish = true,
   storeHistory = true
 }) => {
-  if (!redis) {
+  // Check Redis connection
+  if (!redis || redis.status !== 'ready') {
     throw new Error('Redis connection required but not available');
   }
 
@@ -178,9 +179,23 @@ const addScoreWithoutPublish = async (playerId, playerName, score, metadata = {}
 // QUERY FUNCTIONS
 // ============================================
 
+// Simple in-memory cache for graceful degradation
+let lastSuccessfulLeaderboard = {
+  all: [],
+  daily: [],
+  weekly: []
+};
+
 const getTopPlayers = async (limit, offset = 0, timeRange = 'all') => {
-  if (!redis) {
-    throw new Error('Redis connection required but not available');
+  // Check Redis is connected before attempting
+  if (!redis || redis.status !== 'ready') {
+    logger.warn(`Redis disconnected, attempting to serve cached leaderboard for ${timeRange}`);
+    if (lastSuccessfulLeaderboard[timeRange] && lastSuccessfulLeaderboard[timeRange].length > 0) {
+      // Filter cached results based on limit/offset
+      return lastSuccessfulLeaderboard[timeRange].slice(offset, offset + limit);
+    }
+    // If no cache, we have to fail
+    throw new Error('Redis connection required and no cached data available');
   }
 
   try {
@@ -228,8 +243,19 @@ const getTopPlayers = async (limit, offset = 0, timeRange = 'all') => {
       }
     }
 
+    // Update cache if this is a standard "top 100" type query (offset 0)
+    if (offset === 0 && result.length > 0) {
+      lastSuccessfulLeaderboard[timeRange] = result;
+    }
+
     return result;
   } catch (error) {
+    logger.error(`Failed to get top players: ${error.message}`);
+    // Attempt fallback on error too
+    if (lastSuccessfulLeaderboard[timeRange] && lastSuccessfulLeaderboard[timeRange].length > 0) {
+      logger.warn(`Serving cached leaderboard for ${timeRange} due to error`);
+      return lastSuccessfulLeaderboard[timeRange].slice(offset, offset + limit);
+    }
     throw new Error(`Failed to get top players: ${error.message}`);
   }
 };
@@ -275,7 +301,7 @@ const getPlayersAround = async (playerId, range = 5, timeRange = 'all') => {
 };
 
 const deletePlayer = async (playerId) => {
-  if (!redis) {
+  if (!redis || redis.status !== 'ready') {
     throw new Error('Redis connection required but not available');
   }
 

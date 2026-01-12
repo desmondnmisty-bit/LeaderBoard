@@ -13,10 +13,11 @@ redis = new Redis(redisUrl, {
   maxRetriesPerRequest: 3,
   lazyConnect: false,
   connectTimeout: 10000,
-  // Keep retrying - Redis is required
+  // Retry logic with exponential backoff
   retryStrategy: (times) => {
-    const delay = Math.min(times * 500, 5000);
-    logger.warn(`Redis connection attempt ${times}, retrying in ${delay}ms...`);
+    // Max 10 attempts in specification, but we'll keep retrying indefinitely with backoff
+    // to match the requirement "Continue attempting reconnection in background"
+    const delay = Math.min(times * 1000, 30000);
     return delay;
   },
 });
@@ -38,6 +39,16 @@ redis.on('error', (err) => {
 
 redis.on('close', () => {
   logger.warn('Redis connection closed');
+  isConnected = false;
+});
+
+redis.on('reconnecting', (time) => {
+  logger.warn(`Redis client reconnecting in ${time}ms...`);
+  isConnected = false;
+});
+
+redis.on('end', () => {
+  logger.error('Redis connection ended permanently');
   isConnected = false;
 });
 

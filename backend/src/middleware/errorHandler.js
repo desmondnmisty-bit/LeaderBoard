@@ -5,7 +5,7 @@ const errorHandler = (err, req, res, next) => {
   const timestamp = new Date().toISOString();
   logger.error(`${req.method} ${req.path} - Error:`, err);
 
-  // Capture exception in Sentry
+  // Capture exception in Sentry - Manual fallback if middleware is missing or fails
   Sentry.captureException(err);
 
   let statusCode = 500;

@@ -8,7 +8,16 @@ const Sentry = require('@sentry/node');
 // Initialize Sentry
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
-  tracesSampleRate: 1.0,
+  environment: process.env.NODE_ENV || 'development',
+  tracesSampleRate: 0.1, // Adjusted to 10% sample rate for performance
+  beforeSend(event) {
+    // Sanitize sensitive data
+    if (event.request && event.request.headers) {
+      delete event.request.headers['authorization'];
+      delete event.request.headers['x-admin-api-key'];
+    }
+    return event;
+  }
 });
 
 // Add error handlers to prevent crashes
@@ -32,6 +41,7 @@ const {
   validateTimeRange
 } = require('./middleware/validation');
 const { errorHandler, asyncHandler } = require('./middleware/errorHandler');
+
 const { optionalAuth } = require('./middleware/auth');
 const { scoreSubmissionLimiter, apiLimiter } = require('./middleware/rateLimiter');
 const {
@@ -80,6 +90,15 @@ if (process.env.NODE_ENV === 'production' && !adminKey) {
 
 const app = express();
 const server = http.createServer(app);
+
+// Sentry Request Handler must be the first middleware on the app
+if (Sentry.Handlers) {
+  app.use(Sentry.Handlers.requestHandler());
+  // TracingHandler creates a trace for every incoming request
+  app.use(Sentry.Handlers.tracingHandler());
+} else {
+  logger.warn('Sentry.Handlers is undefined - skipping Sentry middleware setup. Check @sentry/node version.');
+}
 
 // Initialize Socket.io
 try {
@@ -136,6 +155,13 @@ app.get('/health', asyncHandler(async (req, res) => {
       status: redisStatus.connected ? 'connected' : 'disconnected',
       responseTime: redisStatus.responseTime
     };
+
+    if (!redisStatus.connected) {
+      health.status = 'unhealthy';
+      health.checks.redis.error = redisStatus.error || 'Redis disconnected';
+      return res.status(503).json(health);
+    }
+
     res.status(200).json(health);
   } catch (error) {
     health.status = 'unhealthy';
@@ -146,6 +172,20 @@ app.get('/health', asyncHandler(async (req, res) => {
     res.status(503).json(health);
   }
 }));
+
+// Periodic Health Checks (every 30 seconds)
+setInterval(async () => {
+  try {
+    const status = await healthCheck();
+    if (!status.connected) {
+      logger.error('Background Health Check: Redis disconnected');
+    } else if (status.responseTime > 100) {
+      logger.warn(`Background Health Check: Slow Redis response (${status.responseTime}ms)`);
+    }
+  } catch (error) {
+    logger.error('Background Health Check Failed:', error);
+  }
+}, 30000);
 
 // API Documentation (excluded from rate limiting)
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
@@ -203,6 +243,9 @@ app.use((req, res) => {
 });
 
 // Error handler
+if (Sentry.Handlers) {
+  app.use(Sentry.Handlers.errorHandler());
+}
 app.use(errorHandler);
 
 // Graceful shutdown

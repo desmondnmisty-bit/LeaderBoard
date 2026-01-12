@@ -50,7 +50,7 @@ export default function ScoreSubmissionForm() {
         .replace(/[^a-z0-9]+/g, '-')  // Replace non-alphanumeric with hyphens
         .replace(/^-+|-+$/g, '')       // Remove leading/trailing hyphens
         .replace(/-+/g, '-');          // Collapse multiple hyphens
-      
+
       const result = await submitScore({
         playerId,
         playerName: playerName.trim(),
@@ -90,7 +90,7 @@ export default function ScoreSubmissionForm() {
               id="playerName"
               value={playerName}
               onChange={(e) => setPlayerName(e.target.value)}
-              className="input-field w-full px-3 py-2 rounded-md focus-ring"
+              className="input-field w-full px-3 py-3 rounded-md focus-ring"
               placeholder="Enter your name"
               required
             />
@@ -105,7 +105,7 @@ export default function ScoreSubmissionForm() {
               id="score"
               value={score}
               onChange={(e) => setScore(e.target.value)}
-              className="input-field w-full px-3 py-2 rounded-md focus-ring"
+              className="input-field w-full px-3 py-3 rounded-md focus-ring"
               placeholder="Enter score"
               min="0"
               required
@@ -121,7 +121,7 @@ export default function ScoreSubmissionForm() {
             id="metadata"
             value={metadata}
             onChange={(e) => setMetadata(e.target.value)}
-            className="input-field w-full px-3 py-2 rounded-md focus-ring"
+            className="input-field w-full px-3 py-3 rounded-md focus-ring min-h-[80px]"
             placeholder='{"level": 5, "country": "US"}'
             rows={3}
           />
@@ -130,18 +130,17 @@ export default function ScoreSubmissionForm() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full bg-primary text-white py-2 px-4 rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus-ring"
+          className="w-full bg-primary text-white py-3 px-4 rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus-ring text-base font-medium min-h-[48px]"
         >
           {isSubmitting ? 'Submitting...' : 'Submit Score'}
         </button>
       </form>
 
       {message && (
-        <div className={`mt-4 p-3 rounded-md font-medium ${
-          message.type === 'success'
+        <div className={`mt-4 p-3 rounded-md font-medium ${message.type === 'success'
             ? 'bg-success text-white border border-success'
             : 'bg-error text-white border border-error'
-        }`}>
+          }`}>
           {message.text}
         </div>
       )}
