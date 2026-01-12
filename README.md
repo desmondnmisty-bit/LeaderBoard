@@ -112,6 +112,35 @@ Before deploying to Railway.io production:
 6. ✅ Verify Railway Redis service is linked
 7. ✅ Enable health checks (already configured in railway.toml)
 8. ✅ Review rate limiting settings for your expected traffic
+9. ✅ **IMPORTANT**: Ensure `ADMIN_API_KEY` is at least 32 characters long.
+
+## Security Best Practices
+
+### Admin API Key Generation
+Generate a strong admin API key using OpenSSL:
+```bash
+openssl rand -hex 32
+```
+
+Set it in your environment:
+```bash
+ADMIN_API_KEY=your_generated_key_here
+```
+
+### Key Rotation
+- Rotate keys every 90 days in production
+- Immediately rotate if key is compromised
+- Use different keys for staging and production
+
+### Storage
+- **Never** commit keys to version control
+- Use Railway.io environment variables for production
+- Store keys in a secure password manager for team access
+
+### Monitoring
+- Review admin operation logs regularly (`logs/combined.log`)
+- Set up alerts for failed authentication attempts (logged as warnings)
+- Monitor for unusual admin activity patterns
 
 ## Project Structure
 

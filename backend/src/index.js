@@ -61,6 +61,23 @@ const scoreRouter = require('./routes/score');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpecs = require('./config/swagger');
 
+// Admin Key Security Validation
+const { ADMIN_KEY_MIN_LENGTH, WEAK_ADMIN_KEYS } = require('./config/constants');
+const adminKey = process.env.ADMIN_API_KEY;
+
+if (process.env.NODE_ENV === 'production' && !adminKey) {
+  logger.warn('⚠️  SECURITY WARNING: ADMIN_API_KEY is not set in production! Admin endpoints are unprotected.');
+} else if (adminKey) {
+  if (adminKey.length < ADMIN_KEY_MIN_LENGTH) {
+    logger.warn(`⚠️  SECURITY WARNING: ADMIN_API_KEY is too short (current: ${adminKey.length}, min: ${ADMIN_KEY_MIN_LENGTH}). Use a stronger key.`);
+  }
+
+  if (WEAK_ADMIN_KEYS.includes(adminKey.toLowerCase())) {
+    logger.error('❌ CRITICAL SECURITY ERROR: Weak ADMIN_API_KEY detected. Server refusing to start.');
+    process.exit(1);
+  }
+}
+
 const app = express();
 const server = http.createServer(app);
 
