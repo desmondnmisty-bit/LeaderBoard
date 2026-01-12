@@ -31,6 +31,7 @@ export default function PlayerSearch({ onSearch }: PlayerSearchProps) {
 
   return (
     <div className="card p-4">
+      <h3 className="text-lg font-semibold mb-4 text-text-primary">Search by player name or ID...</h3>
       <div className="relative">
         <input
           type="text"

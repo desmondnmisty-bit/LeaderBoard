@@ -28,8 +28,8 @@ export default function Home() {
     <ThemeProvider>
       <main className="min-h-screen bg-bg-primary text-text-primary">
         <header className="bg-bg-secondary border-b border-border-color sticky top-0 z-50 will-change-transform backdrop-blur-md bg-opacity-90">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex md:flex-row flex-col items-center justify-between">
+            <div className="flex items-center gap-3 m-3">
               {process.env.NEXT_PUBLIC_LOGO_URL && (
                 <img
                   src={process.env.NEXT_PUBLIC_LOGO_URL}
