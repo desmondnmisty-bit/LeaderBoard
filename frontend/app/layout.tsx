@@ -9,9 +9,64 @@ const inter = Inter({
   preload: true,
 });
 
+const appTitle = process.env.NEXT_PUBLIC_APP_NAME || '4 The Win Leaderboard';
+const appDescription = 'Real-time competitive leaderboard with live socket updates and instant ranking notifications.';
+const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://leaderboard-pro-demo.com';
+
 export const metadata: Metadata = {
-  title: '4 The Win Leaderboard',
-  description: 'Real-time leaderboard with Socket.io integration',
+  title: {
+    default: appTitle,
+    template: `%s | ${appTitle}`,
+  },
+  description: appDescription,
+  applicationName: appTitle,
+  authors: [{ name: '4 The Win Team' }],
+  keywords: ['leaderboard', 'real-time', 'competition', 'socket.io', 'nextjs'],
+  viewport: 'width=device-width, initial-scale=1',
+  themeColor: process.env.NEXT_PUBLIC_PRIMARY_COLOR || '#ef4444',
+  openGraph: {
+    title: appTitle,
+    description: appDescription,
+    url: appUrl,
+    siteName: appTitle,
+    locale: 'en_US',
+    type: 'website',
+    images: [
+      {
+        url: `${appUrl}/og-image.jpg`, // Assumption: user will add this asset later
+        width: 1200,
+        height: 630,
+        alt: `${appTitle} Preview`,
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: appTitle,
+    description: appDescription,
+    images: [`${appUrl}/og-image.jpg`],
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+  alternates: {
+    canonical: appUrl,
+  },
+};
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: appTitle,
+  description: appDescription,
+  applicationCategory: 'GameApplication',
+  operatingSystem: 'Web',
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'USD',
+  },
 };
 
 // Helper to strip quotes from env vars if present
@@ -91,6 +146,10 @@ export default function RootLayout({
             `
           }} />
         )}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
       </head>
       <body className={inter.className}>
         <AnalyticsProvider>

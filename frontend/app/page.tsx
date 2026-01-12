@@ -3,6 +3,8 @@ import { LeaderboardProvider } from '../lib/LeaderboardContext';
 import { ThemeProvider } from '../lib/ThemeContext';
 import LeaderboardContainer from '../components/LeaderboardContainer';
 import ThemeToggle from '../components/ThemeToggle';
+import HeroSection from '../components/marketing/HeroSection';
+import FeaturesSection from '../components/marketing/FeaturesSection';
 import Link from 'next/link';
 
 function LoadingLeaderboard() {
@@ -25,7 +27,7 @@ export default function Home() {
   return (
     <ThemeProvider>
       <main className="min-h-screen bg-bg-primary text-text-primary">
-        <header className="bg-bg-secondary border-b border-border-color sticky top-0 z-10 will-change-transform">
+        <header className="bg-bg-secondary border-b border-border-color sticky top-0 z-50 will-change-transform backdrop-blur-md bg-opacity-90">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               {process.env.NEXT_PUBLIC_LOGO_URL && (
@@ -39,21 +41,26 @@ export default function Home() {
                 {process.env.NEXT_PUBLIC_APP_NAME || '4 The Win Leaderboard'}
               </h1>
             </div>
-            <ThemeToggle />
+            <div className="flex items-center gap-4">
+              <Link href="/admin" className="text-sm font-medium text-text-secondary hover:text-text-primary hidden sm:block">
+                Admin
+              </Link>
+              <ThemeToggle />
+            </div>
           </div>
         </header>
 
-        <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8">
+        {/* Marketing Sections */}
+        <HeroSection />
+        <FeaturesSection />
+
+        {/* Live Demo Section */}
+        <div id="live-demo" className="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-text-primary mb-4">Live Demo</h2>
             <p className="text-lg text-text-secondary">
-              Real-time rankings with live updates
+              See the real-time rankings in action below.
             </p>
-            <Link
-              href="/admin"
-              className="inline-block mt-4 text-sm text-text-secondary hover:text-text-primary underline"
-            >
-              Admin Dashboard →
-            </Link>
           </div>
           <LeaderboardProvider>
             <Suspense fallback={<LoadingLeaderboard />}>
