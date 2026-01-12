@@ -16,7 +16,7 @@ const optionalAuth = (req, res, next) => {
   }
 
   // Check for x-api-key header
-  const apiKey = req.headers['x-api-key'];
+  const apiKey = req.headers['x-api-key'] || req.headers['x-admin-key'];
   if (apiKey === adminApiKey) {
     return next();
   }

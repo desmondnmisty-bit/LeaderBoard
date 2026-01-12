@@ -50,7 +50,7 @@ interface LeaderboardData {
 export default function AdminDashboard() {
   const [adminKey, setAdminKey] = useState(process.env.NEXT_PUBLIC_ADMIN_API_KEY || '');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [activeTab, setActiveTab] = useState<'overview' | 'players' | 'activity' | 'analytics'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'players' | 'activity' | 'settings'>('overview');
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
   const [activity, setActivity] = useState<Activity[]>([]);
@@ -61,7 +61,10 @@ export default function AdminDashboard() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [gaConfig, setGaConfig] = useState('');
   const [configLoading, setConfigLoading] = useState(false);
+
   const [testStatus, setTestStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
+  const [demoStatus, setDemoStatus] = useState<{ active: boolean; interval: number } | null>(null);
+  const [demoLoading, setDemoLoading] = useState(false);
 
   // Check for stored admin key on mount
   useEffect(() => {
@@ -163,11 +166,62 @@ export default function AdminDashboard() {
     }
   }, []);
 
+  const fetchDemoStatus = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/admin/demo`, {
+        headers: getHeaders(),
+      });
+      const data = await response.json();
+      if (data.success) {
+        setDemoStatus(data.data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch demo status:', err);
+    }
+  }, [getHeaders]);
+
+  const toggleDemoMode = async (enabled: boolean) => {
+    setDemoLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/admin/demo`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ enabled }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        setDemoStatus(prev => prev ? { ...prev, active: data.data.active } : { active: data.data.active, interval: 10000 });
+
+        // Immediate visual feedback if activation failed logic (e.g. backend refused)
+        if (enabled && !data.data.active) {
+          setError('Failed to start Demo Mode. Check backend logs (Redis connection?).');
+        } else {
+          setSuccessMessage(data.data.message);
+          // Refresh data immediately to show results
+          fetchStats();
+          fetchActivity();
+          fetchPlayers();
+        }
+
+        setTimeout(() => setSuccessMessage(null), 3000);
+      } else {
+        throw new Error(data.error?.message || 'Failed to toggle demo mode');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to toggle demo mode');
+    } finally {
+      setDemoLoading(false);
+    }
+  };
+
+
+
   useEffect(() => {
-    if (activeTab === 'analytics') {
+    if (activeTab === 'settings') {
+      fetchDemoStatus();
       fetchConfig();
     }
-  }, [activeTab, fetchConfig]);
+  }, [activeTab, fetchConfig, fetchDemoStatus]);
 
   // Fetch data when authenticated
   useEffect(() => {
@@ -384,7 +438,7 @@ export default function AdminDashboard() {
       <div className="max-w-7xl mx-auto px-6 py-6">
         {/* Tabs */}
         <div className="flex space-x-2 mb-6 overflow-x-auto pb-2 scrollbar-hide" role="tablist" aria-label="Admin Sections">
-          {(['overview', 'players', 'activity', 'analytics'] as const).map((tab) => (
+          {(['overview', 'players', 'activity', 'settings'] as const).map((tab) => (
             <button
               key={tab}
               role="tab"
@@ -626,7 +680,9 @@ export default function AdminDashboard() {
                         <td className="px-4 py-3 text-sm text-text-primary">
                           <span className={"px-2 py-1 rounded text-xs uppercase font-bold " +
                             (item.type === 'system' ? 'bg-primary/20 text-primary' :
-                              'bg-bg-tertiary text-text-secondary')}>
+                              item.type === 'admin' ? 'bg-accent/20 text-accent' :
+                                item.type === 'demo' ? 'bg-purple-500/20 text-purple-400' :
+                                  'bg-bg-tertiary text-text-secondary')}>
                             {item.type}
                           </span>
                         </td>
@@ -653,6 +709,7 @@ export default function AdminDashboard() {
                 </table>
               </div>
             </div>
+
             {/* Mobile Card View */}
             <div className="md:hidden space-y-4">
               {activity.map((item, i) => (
@@ -669,7 +726,8 @@ export default function AdminDashboard() {
                     <span className={"px-2.5 py-1 rounded-full text-[10px] uppercase font-bold tracking-wide " +
                       (item.type === 'system' ? 'bg-primary/20 text-primary' :
                         item.type === 'admin' ? 'bg-accent/20 text-accent' :
-                          'bg-bg-tertiary text-text-secondary')}>
+                          item.type === 'demo' ? 'bg-purple-500/20 text-purple-400' :
+                            'bg-bg-tertiary text-text-secondary')}>
                       {item.type}
                     </span>
                   </div>
@@ -691,9 +749,65 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* Analytics Tab */}
-        {activeTab === 'analytics' && (
+        {/* Settings Tab */}
+        {activeTab === 'settings' && (
           <div className="space-y-6">
+            {/* System Control Card (Demo Mode) */}
+            <div className="card p-6 border-l border-accent">
+              <h3 className="text-lg font-medium text-text-primary mb-4 flex items-center gap-2">
+                <span>System Controls</span>
+                {demoLoading && <span className="text-sm text-text-secondary animate-pulse">(Updating...)</span>}
+              </h3>
+
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-medium text-text-primary">Demo Mode Simulation</span>
+                    <span className={`px-2 py-0.5 rounded text-xs uppercase font-bold ${demoStatus?.active ? 'bg-success/20 text-success' : 'bg-text-tertiary/20 text-text-tertiary'
+                      }`}>
+                      {demoStatus?.active ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
+                  <p className="text-sm text-text-secondary max-w-xl">
+                    Automatically generates fake player scores and activity every {demoStatus?.interval ? demoStatus.interval / 1000 : 10} seconds.
+                    Useful for testing real-time updates without manual input.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-medium text-text-secondary">
+                    {demoStatus?.active ? 'On' : 'Off'}
+                  </span>
+                  <button
+                    onClick={() => toggleDemoMode(!demoStatus?.active)}
+                    disabled={demoLoading}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus-ring ${demoStatus?.active ? 'bg-success' : 'bg-text-tertiary'
+                      }`}
+                    role="switch"
+                    aria-checked={demoStatus?.active}
+                    aria-label="Toggle Demo Mode"
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${demoStatus?.active ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                    />
+                  </button>
+                </div>
+              </div>
+
+              {demoStatus?.active && (
+                <div className="mt-4 pt-4 border-t border-border-color">
+                  <div className="flex items-start gap-2 text-sm text-accent">
+                    <span>ℹ️</span>
+                    <span>
+                      <strong>Note:</strong> While enabled, random scores will be added to the leaderboard
+                      for "DemoPlayer" accounts. Normal API submissions still work.
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div className="card p-6">
               <h3 className="text-lg font-medium text-text-primary mb-4">Analytics Configuration</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -197,6 +197,44 @@ app.use('/player', playerRouter);
 app.use('/admin', adminRouter);
 app.use('/config', require('./routes/configRoutes'));
 
+// Admin: Get Demo Status
+app.get('/admin/demo', optionalAuth, (req, res) => {
+  const { isDemoRunning } = require('./demo');
+  const demoInterval = parseInt(process.env.DEMO_INTERVAL) || 10000;
+
+  logger.info(`Admin check: Demo Active=${isDemoRunning()}, Interval=${demoInterval}`);
+
+  res.json({
+    success: true,
+    data: {
+      active: isDemoRunning(),
+      interval: demoInterval
+    }
+  });
+});
+
+// Admin: Toggle Demo Mode
+app.post('/admin/demo', optionalAuth, asyncHandler(async (req, res) => {
+  const { enabled } = req.body;
+  const { startDemoMode, stopDemoMode, isDemoRunning } = require('./demo');
+
+  logger.info(`Admin toggle request: ${enabled ? 'Enable' : 'Disable'} (Current: ${isDemoRunning()})`);
+
+  if (enabled && !isDemoRunning()) {
+    await startDemoMode();
+  } else if (!enabled && isDemoRunning()) {
+    stopDemoMode();
+  }
+
+  res.json({
+    success: true,
+    data: {
+      active: isDemoRunning(),
+      message: `Demo mode ${enabled ? 'started' : 'stopped'}`
+    }
+  });
+}));
+
 // Legacy routes for backward compatibility (optional, can be removed if frontend is updated)
 // Mapping old routes to new controllers if needed, or just relying on the new structure.
 // For now, we'll keep the old paths working by redirecting or re-mounting if strictly necessary,

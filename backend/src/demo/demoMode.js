@@ -4,11 +4,11 @@ const { redis } = require('../config/redis');
 const logger = require('../utils/logger');
 
 const DEMO_PLAYERS = [
-  { id: 'demo-player-1', name: 'DemoPlayer1' },
-  { id: 'demo-player-2', name: 'DemoPlayer2' },
-  { id: 'demo-player-3', name: 'DemoPlayer3' },
-  { id: 'demo-player-4', name: 'DemoPlayer4' },
-  { id: 'demo-player-5', name: 'DemoPlayer5' }
+  { id: 'demo-player-1', name: '[DEMO] Player 1' },
+  { id: 'demo-player-2', name: '[DEMO] Player 2' },
+  { id: 'demo-player-3', name: '[DEMO] Player 3' },
+  { id: 'demo-player-4', name: '[DEMO] Player 4' },
+  { id: 'demo-player-5', name: '[DEMO] Player 5' }
 ];
 
 let demoInterval;
@@ -29,6 +29,11 @@ const getRandomMetadata = () => {
 
 const startDemoMode = async () => {
   if (process.env.DEMO_MODE !== 'true') {
+    // Check skipped for dynamic control
+  }
+
+  if (demoInterval) {
+    logger.warn('Demo mode already running');
     return;
   }
 
@@ -66,12 +71,11 @@ const startDemoMode = async () => {
 
         // Log activity
         addActivity({
-          type: 'score',
+          type: 'demo', // Distinct type for visibility
           playerId: player.id,
           playerName: player.name,
           score,
           rank: result.rank,
-          // Mark as demo data if we want to distinguish, but for now just show it
         });
       }
       logger.debug('Demo mode: Score generation complete');
@@ -91,7 +95,10 @@ const stopDemoMode = () => {
   }
 };
 
+const isDemoRunning = () => !!demoInterval;
+
 module.exports = {
   startDemoMode,
-  stopDemoMode
+  stopDemoMode,
+  isDemoRunning
 };
