@@ -93,6 +93,16 @@ try {
 // Middleware
 app.use(express.json({ limit: '1mb' })); // Limit request body size
 
+// Request logging
+const morgan = require('morgan');
+app.use(morgan(
+  ':remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent" - :response-time ms',
+  {
+    stream: logger.stream,
+    skip: (req) => req.url === '/health' // Skip health check logging to reduce noise
+  }
+));
+
 // Security headers
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');

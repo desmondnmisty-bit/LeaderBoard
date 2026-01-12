@@ -1,5 +1,6 @@
 const socketIo = require('socket.io');
 const { joinPlayerRoom, leavePlayerRoom } = require('./rooms');
+const logger = require('../utils/logger');
 
 let io;
 
@@ -14,7 +15,7 @@ const initializeSocket = (server) => {
   });
 
   io.on('connection', (socket) => {
-    console.log(`Client connected: ${socket.id}`);
+    logger.debug(`Client connected: ${socket.id}`);
 
     // Handle player room joining
     socket.on('join-player', (data) => {
@@ -35,12 +36,12 @@ const initializeSocket = (server) => {
     });
 
     socket.on('error', (error) => {
-      console.error(`Socket error for ${socket.id}:`, error);
+      logger.error(`Socket error for ${socket.id}:`, error);
     });
   });
 
   io.on('error', (error) => {
-    console.error('Socket.io server error:', error);
+    logger.error('Socket.io server error:', error);
   });
 
   return io;

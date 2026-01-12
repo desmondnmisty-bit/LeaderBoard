@@ -1,5 +1,6 @@
 const { addScore } = require('../utils/leaderboard');
 const { redis } = require('../config/redis');
+const logger = require('../utils/logger');
 
 const DEMO_PLAYERS = [
   { id: 'demo-player-1', name: 'DemoPlayer1' },
@@ -33,15 +34,15 @@ const startDemoMode = async () => {
   // Check Redis connection before starting demo mode
   try {
     if (!redis) {
-      console.warn('Demo mode disabled: Redis client not available.');
+      logger.warn('Demo mode disabled: Redis client not available.');
       return;
     }
-    
+
     // Test actual connection with ping
     await redis.ping();
-    console.log('Demo mode: Redis connection confirmed');
+    logger.info('Demo mode: Redis connection confirmed');
   } catch (error) {
-    console.warn('Demo mode disabled: Redis connection not available. Demo mode requires an active Redis connection.');
+    logger.warn('Demo mode disabled: Redis connection not available. Demo mode requires an active Redis connection.');
     return;
   }
 
@@ -49,7 +50,7 @@ const startDemoMode = async () => {
 
   demoInterval = setInterval(async () => {
     try {
-      console.log('Demo mode: Generating scores...');
+      logger.debug('Demo mode: Generating scores...');
       // Randomly select 1-3 players to submit scores
       const numPlayers = Math.floor(Math.random() * 3) + 1;
       const selectedPlayers = DEMO_PLAYERS.sort(() => 0.5 - Math.random()).slice(0, numPlayers);
@@ -57,25 +58,25 @@ const startDemoMode = async () => {
       for (const player of selectedPlayers) {
         const score = getRandomScore();
         const metadata = getRandomMetadata();
-        console.log(`Demo mode: Adding score ${score} for ${player.name}`);
+        logger.debug(`Demo mode: Adding score ${score} for ${player.name}`);
 
         // Only call once - addScore handles all time ranges internally
         await addScore(player.id, player.name, score, metadata);
       }
-      console.log('Demo mode: Score generation complete');
+      logger.debug('Demo mode: Score generation complete');
     } catch (error) {
-      console.error('Error in demo mode:', error);
+      logger.error('Error in demo mode:', error);
     }
   }, interval);
 
-  console.log(`Demo mode started - generating fake scores every ${interval}ms`);
+  logger.info(`Demo mode started - generating fake scores every ${interval}ms`);
 };
 
 const stopDemoMode = () => {
   if (demoInterval) {
     clearInterval(demoInterval);
     demoInterval = null;
-    console.log('Demo mode stopped');
+    logger.info('Demo mode stopped');
   }
 };
 

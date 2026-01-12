@@ -1,8 +1,35 @@
 const winston = require('winston');
+require('winston-daily-rotate-file');
+
+// Define log levels
+const levels = {
+  error: 0,
+  warn: 1,
+  info: 2,
+  http: 3,
+  debug: 4,
+};
+
+// Define colors for each level
+const colors = {
+  error: 'red',
+  warn: 'yellow',
+  info: 'green',
+  http: 'magenta',
+  debug: 'white',
+};
+
+// Start unknown log levels at debug compatible
+winston.addColors(colors);
+
+const level = () => {
+  const env = process.env.NODE_ENV || 'development';
+  return process.env.LOG_LEVEL || (env === 'development' ? 'debug' : 'info');
+};
 
 // Define log format
 const logFormat = winston.format.combine(
-  winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+  winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }),
   winston.format.errors({ stack: true }),
   winston.format.splat(),
   winston.format.json()
@@ -10,54 +37,46 @@ const logFormat = winston.format.combine(
 
 // Console format for development
 const consoleFormat = winston.format.combine(
-  winston.format.colorize(),
-  winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-  winston.format.printf(({ timestamp, level, message, ...metadata }) => {
-    let msg = `${timestamp} [${level}]: ${message}`;
-    if (Object.keys(metadata).length > 0) {
-      msg += ` ${JSON.stringify(metadata)}`;
-    }
-    return msg;
-  })
+  winston.format.colorize({ all: true }),
+  winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }),
+  winston.format.printf(
+    (info) => `${info.timestamp} ${info.level}: ${info.message}`
+  )
 );
 
-// Create logger instance
+const transports = [
+  new winston.transports.Console({
+    format: process.env.NODE_ENV === 'development' ? consoleFormat : logFormat
+  }),
+  new winston.transports.DailyRotateFile({
+    filename: 'logs/error-%DATE%.log',
+    datePattern: 'YYYY-MM-DD',
+    zippedArchive: true,
+    maxSize: '10m',
+    maxFiles: '14d',
+    level: 'error',
+  }),
+  new winston.transports.DailyRotateFile({
+    filename: 'logs/combined-%DATE%.log',
+    datePattern: 'YYYY-MM-DD',
+    zippedArchive: true,
+    maxSize: '10m',
+    maxFiles: '14d',
+  }),
+];
+
 const logger = winston.createLogger({
-  level: process.env.LOG_LEVEL || 'info',
+  level: level(),
+  levels,
   format: logFormat,
   defaultMeta: { service: 'leaderboard-api', environment: process.env.NODE_ENV },
-  transports: [
-    // Write all logs with importance level of 'error' or less to error.log
-    new winston.transports.File({ 
-      filename: 'logs/error.log', 
-      level: 'error',
-      maxsize: 5242880, // 5MB
-      maxFiles: 5,
-    }),
-    // Write all logs to combined.log
-    new winston.transports.File({ 
-      filename: 'logs/combined.log',
-      maxsize: 5242880, // 5MB
-      maxFiles: 5,
-    }),
-  ],
+  transports,
 });
-
-// If we're not in production, log to the console
-if (process.env.NODE_ENV !== 'production') {
-  logger.add(new winston.transports.Console({
-    format: consoleFormat,
-  }));
-} else {
-  logger.add(new winston.transports.Console({
-    format: logFormat,
-  }));
-}
 
 // Create a stream object for Morgan HTTP request logger
 logger.stream = {
   write: (message) => {
-    logger.info(message.trim());
+    logger.http(message.trim());
   },
 };
 

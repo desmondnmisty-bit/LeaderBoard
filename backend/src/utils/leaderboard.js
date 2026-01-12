@@ -1,5 +1,6 @@
 const { redis } = require('../config/redis');
 const { getWeek, getYear, format } = require('date-fns');
+const logger = require('../utils/logger');
 
 // ============================================
 // CONSTANTS (should use from config, but inlined for now)
@@ -61,11 +62,11 @@ const setLeaderboardTTL = async (key, timeRange) => {
  * @param {boolean} [options.storeHistory=true] - Store in history list
  * @returns {Promise<{playerId, score, rank, updated}>}
  */
-const addScoreInternal = async ({ 
-  playerId, 
-  playerName, 
-  score, 
-  metadata = {}, 
+const addScoreInternal = async ({
+  playerId,
+  playerName,
+  score,
+  metadata = {},
   publish = true,
   storeHistory = true
 }) => {
@@ -92,7 +93,7 @@ const addScoreInternal = async ({
   const newTotalAll = currentScoreAll + score;
   const newTotalDaily = currentScoreDaily + score;
   const newTotalWeekly = currentScoreWeekly + score;
-  
+
   // Store history for tracking
   if (storeHistory) {
     const historyKey = `history:${playerId}`;
@@ -136,28 +137,28 @@ const addScoreInternal = async ({
   // Publish score update
   if (publish) {
     try {
-      await redis.publish('score-update', JSON.stringify({ 
-        playerId, 
-        playerName, 
-        score: newTotalAll, 
+      await redis.publish('score-update', JSON.stringify({
+        playerId,
+        playerName,
+        score: newTotalAll,
         scoreAdded: score,
         daily: newTotalDaily,
         weekly: newTotalWeekly
       }));
     } catch (publishError) {
-      console.error('Failed to publish score update:', publishError.message);
+      logger.error('Failed to publish score update:', publishError);
     }
   }
 
   // Get final rank from all-time leaderboard
   const rank = await redis.zrevrank(allKey, playerId);
-  return { 
-    playerId, 
-    score: newTotalAll, 
-    scoreAdded: score, 
-    previousScore: currentScoreAll, 
-    rank: rank !== null ? rank + 1 : null, 
-    updated: true 
+  return {
+    playerId,
+    score: newTotalAll,
+    scoreAdded: score,
+    previousScore: currentScoreAll,
+    rank: rank !== null ? rank + 1 : null,
+    updated: true
   };
 };
 
@@ -289,18 +290,18 @@ const deletePlayer = async (playerId) => {
 
     // Use pipeline for atomic deletion
     const pipeline = redis.pipeline();
-    
+
     // Remove from all leaderboards
     pipeline.zrem('leaderboard:all', playerId);
     pipeline.zrem(`leaderboard:daily:${dailyKey}`, playerId);
     pipeline.zrem(`leaderboard:weekly:${weeklyKey}`, playerId);
-    
+
     // Delete all player data (profile is stored in player key)
     pipeline.del(`player:${playerId}`);
     pipeline.del(`history:${playerId}`);
 
     const results = await pipeline.exec();
-    
+
     // Count successful deletions
     const deletedCount = results.reduce((sum, [err, result]) => {
       return sum + (err ? 0 : (result || 0));

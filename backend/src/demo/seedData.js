@@ -1,5 +1,6 @@
 const { addScoreWithoutPublish } = require('../utils/leaderboard');
 const { redis } = require('../config/redis');
+const logger = require('../utils/logger');
 
 const generateFakePlayers = (count) => {
   const players = [];
@@ -22,7 +23,7 @@ const seedLeaderboard = async () => {
   // Remove the Redis availability check since we already verified it in waitForRedis
   const players = generateFakePlayers(75); // Generate 75 fake players
 
-  console.log('Starting leaderboard seeding...');
+  logger.info('Starting leaderboard seeding...');
 
   for (let i = 0; i < players.length; i++) {
     const player = players[i];
@@ -32,15 +33,15 @@ const seedLeaderboard = async () => {
       await addScoreWithoutPublish(player.id, player.name, player.score, player.metadata);
 
       if ((i + 1) % 25 === 0) {
-        console.log(`Seeded ${i + 1}/${players.length} players...`);
+        logger.info(`Seeded ${i + 1}/${players.length} players...`);
       }
     } catch (error) {
-      console.error(`Error seeding player ${player.id}:`, error);
+      logger.error(`Error seeding player ${player.id}:`, error);
       throw error;
     }
   }
 
-  console.log(`Successfully seeded ${players.length} players into the leaderboard`);
+  logger.info(`Successfully seeded ${players.length} players into the leaderboard`);
   return { success: true, playersSeeded: players.length };
 };
 
@@ -51,14 +52,14 @@ if (require.main === module) {
   const waitForRedis = async (retries = 5) => {
     for (let i = 0; i < retries; i++) {
       try {
-        console.log(`Testing Redis connection... (${i + 1}/${retries})`);
-        
+        logger.info(`Testing Redis connection... (${i + 1}/${retries})`);
+
         // Try to ping Redis directly
         await redis.ping();
-        console.log('Redis connection confirmed with ping');
+        logger.info('Redis connection confirmed with ping');
         return true;
       } catch (error) {
-        console.log(`Redis connection attempt ${i + 1}/${retries} failed: ${error.message}`);
+        logger.warn(`Redis connection attempt ${i + 1}/${retries} failed: ${error.message}`);
         await new Promise(resolve => setTimeout(resolve, 2000));
       }
     }
@@ -69,15 +70,15 @@ if (require.main === module) {
     try {
       const redisReady = await waitForRedis();
       if (!redisReady) {
-        console.error('Redis connection failed after all retry attempts. Seeding cannot proceed without an active Redis connection.');
+        logger.error('Redis connection failed after all retry attempts. Seeding cannot proceed without an active Redis connection.');
         process.exit(1);
       }
 
       await seedLeaderboard();
-      console.log('Leaderboard seeding completed successfully!');
+      logger.info('Leaderboard seeding completed successfully!');
       process.exit(0);
     } catch (error) {
-      console.error('Seeding failed:', error.message);
+      logger.error('Seeding failed:', error);
       process.exit(1);
     }
   })();

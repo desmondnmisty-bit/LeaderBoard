@@ -1,8 +1,9 @@
 const Sentry = require('@sentry/node');
+const logger = require('../utils/logger');
 
 const errorHandler = (err, req, res, next) => {
   const timestamp = new Date().toISOString();
-  console.error(`[${timestamp}] ${req.method} ${req.path} - Error:`, err);
+  logger.error(`${req.method} ${req.path} - Error:`, err);
 
   // Capture exception in Sentry
   Sentry.captureException(err);

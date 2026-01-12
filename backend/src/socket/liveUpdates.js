@@ -1,5 +1,6 @@
 const { getTopPlayers } = require('../utils/leaderboard');
 const { getIO } = require('./socketManager');
+const logger = require('../utils/logger');
 
 let updateInterval;
 
@@ -20,23 +21,23 @@ const startLiveUpdates = () => {
             timestamp: new Date().toISOString()
           });
         } catch (error) {
-          console.error('Failed to emit live-update:', error);
+          logger.error('Failed to emit live-update:', error);
         }
       }
     } catch (error) {
-      console.error('Error in live updates:', error);
+      logger.error('Error in live updates:', error);
       // Don't crash the server, just log the error
     }
   }, interval);
 
-  console.log(`Live updates started with ${interval}ms interval`);
+  logger.info(`Live updates started with ${interval}ms interval`);
 };
 
 const stopLiveUpdates = () => {
   if (updateInterval) {
     clearInterval(updateInterval);
     updateInterval = null;
-    console.log('Live updates stopped');
+    logger.info('Live updates stopped');
   }
 };
 
