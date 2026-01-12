@@ -97,3 +97,31 @@ This frontend is designed to work with Railway.io deployment. The `next.config.j
 - `hooks/` - Custom React hooks for logic separation
 - `lib/` - Shared utilities, types, and context providers
 - `public/` - Static assets served by Next.js
+
+## Troubleshooting
+
+### Commonly Encountered Issues
+
+1.  **Port 3000/3001 already in use (EADDRINUSE)**
+    *   **Symptoms**: `Error: listen EADDRINUSE: address already in use :::3001`
+    *   **Fix**: This happens when a previous dev session didn't close cleanely.
+        *   **Windows**: Run `taskkill /F /IM node.exe` in your terminal.
+        *   **Mac/Linux**: Run `lsof -i :3000` then `kill -9 <PID>`.
+
+2.  **WebSocket Connection Failed**
+    *   **Symptoms**: "Connection lost" toast appears immediately, or 400 Bad Request errors in console.
+    *   **Fix**:
+        *   Ensure backend is running (`npm run dev:backend`).
+        *   Check `NEXT_PUBLIC_SOCKET_URL` in `.env.local` matches the backend URL (default `http://localhost:3001`).
+        *   If accessing from another device, ensure you are using the LAN IP, not localhost.
+
+3.  **Redis Connection Error**
+    *   **Symptoms**: `ECONNREFUSED 127.0.0.1:6379` logged in backend terminal.
+    *   **Fix**:
+        *   Ensure Redis is installed and running locally.
+        *   **Windows**: Start the Redis service or run `redis-server`.
+        *   Or use a remote Redis instance by setting `REDIS_URL` in `backend/.env`.
+
+4.  **PWA Icons 404**
+    *   **Symptoms**: Console errors requesting `manifest.json` or `icon.png`.
+    *   **Fix**: Ensure you have run `npm run build` at least once if testing production behavior, or check that files exist in `public/`.

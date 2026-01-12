@@ -148,7 +148,7 @@ describe('LeaderboardTable', () => {
     // Find the row for Player Two and check for highlight class
     // Note: This is a bit implementation detail dependent, but checks the logic
     const rows = container.querySelectorAll('tbody tr');
-    expect(rows[1]).toHaveClass('bg-primary/10');
-    expect(rows[0]).not.toHaveClass('bg-primary/10');
+    expect(rows[1]).toHaveClass('bg-primary/5');
+    expect(rows[0]).not.toHaveClass('bg-primary/5');
   });
 });
