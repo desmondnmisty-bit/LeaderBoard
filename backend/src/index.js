@@ -90,21 +90,41 @@ app.use(cors({
   credentials: true
 }));
 
-// Apply general rate limiting to all routes
-app.use(apiLimiter);
+// Health check (exempt from rate limiting)
+app.get('/health', asyncHandler(async (req, res) => {
+  const health = {
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    checks: {
+      server: {
+        status: 'running',
+        uptime: process.uptime()
+      }
+    }
+  };
 
-// API Documentation
+  try {
+    const redisStatus = await healthCheck();
+    health.checks.redis = {
+      status: redisStatus.connected ? 'connected' : 'disconnected',
+      responseTime: redisStatus.responseTime
+    };
+    res.status(200).json(health);
+  } catch (error) {
+    health.status = 'unhealthy';
+    health.checks.redis = {
+      status: 'disconnected',
+      error: error.message
+    };
+    res.status(503).json(health);
+  }
+}));
+
+// API Documentation (excluded from rate limiting)
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 
 // Health check
-app.get('/health', asyncHandler(async (req, res) => {
-  const redisStatus = await healthCheck();
-  res.json({
-    status: 'ok',
-    redis: redisStatus,
-    timestamp: new Date().toISOString()
-  });
-}));
+
 
 // Mount routes
 app.use('/score', scoreRouter);
@@ -130,7 +150,7 @@ app.use('/admin', adminRouter);
 app.use('/', leaderboardRouter); // This mounts /top, /around, /daily, /weekly, /all at root level
 
 // Delete player (admin) - specific route after the router
-app.delete('/player/:id', validatePlayerId, optionalAuth, asyncHandler(async (req, res) => {
+app.delete('/player/:id', apiLimiter, validatePlayerId, optionalAuth, asyncHandler(async (req, res) => {
   const playerId = req.playerId;
 
   const success = await deletePlayer(playerId);

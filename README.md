@@ -97,7 +97,7 @@ A real-time leaderboard application built with Express, Socket.io, Redis, and Ne
 | NEXT_PUBLIC_SOCKET_URL | Socket.io server URL | http://localhost:3001 | Set to backend URL |
 | RATE_LIMIT_ENABLED | Enable rate limiting | true | true |
 | RATE_LIMIT_SCORE | Score submissions per minute | 10 | 10 |
-| RATE_LIMIT_API | API calls per 15 minutes | 100 | 100 |
+| RATE_LIMIT_API | API calls per 15 minutes | 1000 | 1000 |
 | LOG_LEVEL | Logging level (debug/info/warn/error) | info | info |
 
 ### Production Deployment Checklist
@@ -153,6 +153,21 @@ Get time-based leaderboards.
 
 ### DELETE /player/:id
 Admin endpoint to remove a player (auth optional).
+
+## Rate Limiting
+
+To ensure stability and fair usage, the API enforces the following rate limits per IP address:
+
+| Endpoint Type | Default Limit | Description |
+|---------------|---------------|-------------|
+| **Score Submission** | 10 req/min | `POST /score` |
+| **Leaderboard Read** | 100 req/min | `GET /leaderboard/*`, `GET /top/*`, etc. |
+| **Player Profile** | 50 req/min | `GET /player/*` |
+| **Admin Operations** | 20 req/min | `GET /admin/*`, `DELETE /player/*` |
+| **General API** | 1000 req/15min | All other endpoints |
+
+Rate limit headers (`RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset`) are included in all responses.
+The `/health` endpoint is exempt from rate limiting.
 
 ## Real-Time Events
 

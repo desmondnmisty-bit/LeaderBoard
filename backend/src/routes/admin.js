@@ -7,10 +7,12 @@ const express = require('express');
 const router = express.Router();
 const { redis } = require('../config/redis');
 const { adminAuth } = require('../middleware/adminAuth');
+const { adminLimiter } = require('../middleware/rateLimiter');
 const { asyncHandler } = require('../middleware/errorHandler');
 const { getCurrentTimeKeys, deletePlayer, getTopPlayers } = require('../utils/leaderboard');
 
-// Apply admin auth to all routes
+// Apply admin auth and rate limiting to all routes
+router.use(adminLimiter);
 router.use(adminAuth);
 
 // Store recent activity in memory (last 100 entries)
@@ -54,7 +56,7 @@ router.get('/stats', asyncHandler(async (req, res) => {
 
   // Count scores submitted today (from activity log)
   const today = new Date().toISOString().split('T')[0];
-  const scoresToday = recentActivity.filter(a => 
+  const scoresToday = recentActivity.filter(a =>
     a.type === 'score' && a.timestamp.startsWith(today)
   ).length;
 
@@ -89,11 +91,11 @@ router.get('/players', asyncHandler(async (req, res) => {
   const timeRange = req.query.timeRange || 'all';
 
   const players = await getTopPlayers(limit + offset, 0, timeRange);
-  
+
   let filteredPlayers = players;
   if (search) {
     const searchLower = search.toLowerCase();
-    filteredPlayers = players.filter(p => 
+    filteredPlayers = players.filter(p =>
       p.playerName.toLowerCase().includes(searchLower) ||
       p.playerId.toLowerCase().includes(searchLower)
     );
@@ -128,7 +130,7 @@ router.delete('/player/:id', asyncHandler(async (req, res) => {
   }
 
   const success = await deletePlayer(playerId);
-  
+
   if (!success) {
     return res.status(404).json({
       success: false,
@@ -174,18 +176,18 @@ router.post('/reset/:timeRange', asyncHandler(async (req, res) => {
     if (confirm !== 'DELETE_ALL_DATA') {
       return res.status(400).json({
         success: false,
-        error: { 
-          message: 'Confirmation required. Send { "confirm": "DELETE_ALL_DATA" } in body.', 
-          code: 400 
+        error: {
+          message: 'Confirmation required. Send { "confirm": "DELETE_ALL_DATA" } in body.',
+          code: 400
         }
       });
     }
 
     playersAffected = await redis.zcard('leaderboard:all');
-    
+
     // Use SCAN instead of KEYS to avoid blocking Redis
     const keysToDelete = [];
-    
+
     // Scan for player keys
     let cursor = '0';
     do {
@@ -193,7 +195,7 @@ router.post('/reset/:timeRange', asyncHandler(async (req, res) => {
       cursor = newCursor;
       keysToDelete.push(...keys);
     } while (cursor !== '0');
-    
+
     // Scan for profile keys
     cursor = '0';
     do {
@@ -201,7 +203,7 @@ router.post('/reset/:timeRange', asyncHandler(async (req, res) => {
       cursor = newCursor;
       keysToDelete.push(...keys);
     } while (cursor !== '0');
-    
+
     // Scan for history keys
     cursor = '0';
     do {
@@ -209,7 +211,7 @@ router.post('/reset/:timeRange', asyncHandler(async (req, res) => {
       cursor = newCursor;
       keysToDelete.push(...keys);
     } while (cursor !== '0');
-    
+
     // Scan for leaderboard keys
     cursor = '0';
     do {
@@ -217,7 +219,7 @@ router.post('/reset/:timeRange', asyncHandler(async (req, res) => {
       cursor = newCursor;
       keysToDelete.push(...keys);
     } while (cursor !== '0');
-    
+
     // Delete in batches to avoid blocking
     if (keysToDelete.length > 0) {
       const batchSize = 100;
@@ -257,7 +259,7 @@ router.post('/reset/:timeRange', asyncHandler(async (req, res) => {
  */
 router.get('/activity', asyncHandler(async (req, res) => {
   const limit = Math.min(parseInt(req.query.limit) || 50, 100);
-  
+
   res.json({
     success: true,
     data: {
