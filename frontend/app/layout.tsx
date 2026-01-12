@@ -22,8 +22,6 @@ export const metadata: Metadata = {
   applicationName: appTitle,
   authors: [{ name: '4 The Win Team' }],
   keywords: ['leaderboard', 'real-time', 'competition', 'socket.io', 'nextjs'],
-  viewport: 'width=device-width, initial-scale=1',
-  themeColor: process.env.NEXT_PUBLIC_PRIMARY_COLOR || '#ef4444',
   openGraph: {
     title: appTitle,
     description: appDescription,
@@ -53,6 +51,12 @@ export const metadata: Metadata = {
   alternates: {
     canonical: appUrl,
   },
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: process.env.NEXT_PUBLIC_PRIMARY_COLOR || '#ef4444',
 };
 
 const jsonLd = {

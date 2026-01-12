@@ -348,14 +348,14 @@ export default function AdminDashboard() {
   return (
     <main className="min-h-screen bg-bg-primary text-text-primary">
       {/* Header */}
-      <header className="bg-bg-secondary border-b border-border-color px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+      <header className="bg-bg-secondary border-b border-border-color px-4 py-3 md:px-6 md:py-4">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-0">
           <h1 className="text-xl font-bold">Leaderboard Admin</h1>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center justify-between md:justify-end gap-4">
             <ThemeToggle />
             <button
               onClick={handleLogout}
-              className="text-text-secondary hover:text-text-primary transition-colors"
+              className="text-text-secondary hover:text-text-primary transition-colors text-sm md:text-base"
             >
               Logout
             </button>
@@ -383,14 +383,14 @@ export default function AdminDashboard() {
 
       <div className="max-w-7xl mx-auto px-6 py-6">
         {/* Tabs */}
-        <div className="flex space-x-4 mb-6">
+        <div className="flex space-x-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
           {(['overview', 'players', 'activity', 'analytics'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-4 py-2 rounded font-medium transition-colors ${activeTab === tab
-                ? 'bg-primary text-white'
-                : 'bg-bg-secondary text-text-secondary hover:text-text-primary'
+              className={`px-4 py-2 rounded-full font-medium transition-colors whitespace-nowrap text-sm ${activeTab === tab
+                ? 'bg-primary text-white shadow-md'
+                : 'bg-bg-tertiary text-text-secondary hover:bg-bg-secondary hover:text-text-primary'
                 }`}
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -511,49 +511,176 @@ export default function AdminDashboard() {
               />
             </div>
 
-            <div className="card overflow-hidden">
-              <table className="w-full">
-                <thead className="table-header">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Rank</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Player ID</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Name</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Score</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium">Metadata</th>
-                    <th className="px-4 py-3 text-right text-sm font-medium">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border-color">
-                  {players.map((player) => (
-                    <tr key={player.playerId} className="table-row">
-                      <td className="px-4 py-3 text-sm text-text-primary">#{player.rank}</td>
-                      <td className="px-4 py-3 text-sm font-mono text-text-secondary">{player.playerId}</td>
-                      <td className="px-4 py-3 text-sm text-text-primary">{player.playerName}</td>
-                      <td className="px-4 py-3 text-sm font-medium text-text-primary">{player.score.toLocaleString()}</td>
-                      <td className="px-4 py-3 text-sm text-text-secondary">
-                        {Object.keys(player.metadata).length > 0
-                          ? JSON.stringify(player.metadata).slice(0, 30) + '...'
-                          : '-'}
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <button
-                          onClick={() => handleDeletePlayer(player.playerId)}
-                          className="text-error hover:text-error/80 text-sm"
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                  {players.length === 0 && (
+            {/* Desktop Table View */}
+            <div className="hidden md:block card overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full whitespace-nowrap">
+                  <thead className="table-header">
                     <tr>
-                      <td colSpan={6} className="px-4 py-8 text-center text-text-tertiary">
-                        No players found
-                      </td>
+                      <th className="px-4 py-3 text-left text-sm font-medium">Rank</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium">Player ID</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium">Name</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium">Score</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium">Metadata</th>
+                      <th className="px-4 py-3 text-right text-sm font-medium">Actions</th>
                     </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border-color">
+                    {players.map((player) => (
+                      <tr key={player.playerId} className="table-row">
+                        <td className="px-4 py-3 text-sm text-text-primary">#{player.rank}</td>
+                        <td className="px-4 py-3 text-sm font-mono text-text-secondary">{player.playerId}</td>
+                        <td className="px-4 py-3 text-sm text-text-primary">{player.playerName}</td>
+                        <td className="px-4 py-3 text-sm font-medium text-text-primary">{player.score.toLocaleString()}</td>
+                        <td className="px-4 py-3 text-sm text-text-secondary">
+                          {Object.keys(player.metadata).length > 0
+                            ? JSON.stringify(player.metadata).slice(0, 30) + '...'
+                            : '-'}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <button
+                            onClick={() => handleDeletePlayer(player.playerId)}
+                            className="text-error hover:text-error/80 text-sm"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                    {players.length === 0 && (
+                      <tr>
+                        <td colSpan={6} className="px-4 py-8 text-center text-text-tertiary">
+                          No players found
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="md:hidden space-y-4 max-w-full overflow-hidden">
+              {players.map((player) => (
+                <div key={player.playerId} className="card p-4 flex flex-col gap-3 w-full">
+                  {/* Header: Name & Rank */}
+                  <div className="flex justify-between items-start">
+                    <div className="min-w-0 flex-1 mr-2">
+                      <h3 className="font-bold text-text-primary text-lg truncate">{player.playerName}</h3>
+                      <div className="text-xs font-mono text-text-secondary mt-1 truncate">{player.playerId}</div>
+                    </div>
+                    <div className="px-2.5 py-1 bg-bg-tertiary rounded-full text-sm font-bold text-text-primary shadow-sm whitespace-nowrap">
+                      #{player.rank}
+                    </div>
+                  </div>
+                  {/* Score & Action */}
+
+                  {/* Score & Action */}
+                  <div className="flex items-center justify-between mt-2">
+                    <div>
+                      <span className="text-xs text-text-secondary uppercase tracking-wider font-semibold block mb-1">Score</span>
+                      <span className="text-2xl font-bold text-primary">{player.score.toLocaleString()}</span>
+                    </div>
+                    <button
+                      onClick={() => handleDeletePlayer(player.playerId)}
+                      className="bg-error/10 text-error px-4 py-2 rounded-lg text-sm font-medium hover:bg-error/20 active:bg-error/30 transition-colors"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+              {players.length === 0 && (
+                <div className="text-center py-8 text-text-secondary">
+                  No players found
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Activity Tab */}
+        {activeTab === 'activity' && (
+          <div className="space-y-4">
+            {/* Desktop Table View */}
+            <div className="hidden md:block card overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full whitespace-nowrap">
+                  <thead className="table-header">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-sm font-medium">Time</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium">Type</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium">Details</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium">Context</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border-color">
+                    {activity.map((item, i) => (
+                      <tr key={i} className="table-row hover:bg-bg-secondary/50">
+                        <td className="px-4 py-3 text-sm text-text-secondary font-mono">{formatTimestamp(item.timestamp)}</td>
+                        <td className="px-4 py-3 text-sm text-text-primary">
+                          <span className={"px-2 py-1 rounded text-xs uppercase font-bold " +
+                            (item.type === 'system' ? 'bg-primary/20 text-primary' :
+                              'bg-bg-tertiary text-text-secondary')}>
+                            {item.type}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-text-primary">
+                          {item.action || item.playerName || 'Unknown Action'}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-text-secondary">
+                          {item.score !== undefined && `Score: ${item.score}`}
+                          {item.rank !== undefined && `Rank: #${item.rank}`}
+                          {item.playerId && <span className="font-mono text-xs ml-2">ID: {item.playerId}</span>}
+                          {item.timeRange && `Range: ${item.timeRange}`}
+                          {item.playersAffected !== undefined && `Affected: ${item.playersAffected}`}
+                        </td>
+                      </tr>
+                    ))}
+                    {activity.length === 0 && (
+                      <tr>
+                        <td colSpan={4} className="px-4 py-8 text-center text-text-tertiary">
+                          No recent activity found.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            {/* Mobile Card View */}
+            <div className="md:hidden space-y-4">
+              {activity.map((item, i) => (
+                <div key={i} className="card p-4 flex flex-col gap-3">
+                  <div className="flex justify-between items-start">
+                    <div className="flex flex-col">
+                      <span className="font-medium text-text-primary text-base mb-1">
+                        {item.action || item.playerName || 'Unknown Action'}
+                      </span>
+                      <span className="text-xs text-text-secondary">
+                        {formatTimestamp(item.timestamp)}
+                      </span>
+                    </div>
+                    <span className={"px-2.5 py-1 rounded-full text-[10px] uppercase font-bold tracking-wide " +
+                      (item.type === 'system' ? 'bg-primary/20 text-primary' :
+                        item.type === 'admin' ? 'bg-accent/20 text-accent' :
+                          'bg-bg-tertiary text-text-secondary')}>
+                      {item.type}
+                    </span>
+                  </div>
+
+                  {(item.score !== undefined || item.rank !== undefined) && (
+                    <div className="flex gap-4 text-sm text-text-secondary border-t border-border-color pt-2 mt-1">
+                      {item.score !== undefined && <span>Score: <b className="text-text-primary">{item.score}</b></span>}
+                      {item.rank !== undefined && <span>Rank: <b className="text-text-primary">#{item.rank}</b></span>}
+                    </div>
                   )}
-                </tbody>
-              </table>
+                </div>
+              ))}
+              {activity.length === 0 && (
+                <div className="text-center py-8 text-text-secondary">
+                  No recent activity found.
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -722,6 +849,6 @@ export default function AdminDashboard() {
           </div>
         )}
       </div>
-    </main>
+    </main >
   );
 }
