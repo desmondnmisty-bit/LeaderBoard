@@ -1,4 +1,4 @@
-# Contributing to LeaderBoard Pro
+# Contributing to LeaderBoard
 
 First off, thanks for taking the time to contribute! 🎉
 

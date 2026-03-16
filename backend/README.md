@@ -1,6 +1,6 @@
-# Backend - LeaderBoard Pro API
+# Backend - LeaderBoard API
 
-Express.js backend for the LeaderBoard Pro application, handling real-time Socket.io connections, Redis data persistence, and API logic.
+Express.js backend for the LeaderBoard application, handling real-time Socket.io connections, Redis data persistence, and API logic.
 
 ## Tech Stack
 - **Runtime**: Node.js

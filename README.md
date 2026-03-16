@@ -1,17 +1,8 @@
 # 4 The Win Leaderboard MVP - Railway.io Template
 
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/YOUR_TEMPLATE_ID?referralCode=YOUR_CODE)
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new)
 
 A real-time leaderboard application built with Express, Socket.io, Redis, and Next.js. Designed for easy deployment on Railway.io with automatic Redis provisioning.
-
-> **Note:** This is the **Lite (Open Source)** version. It is perfect for single-game deployments and hackathons.
->
-> **Looking for the Pro Version?**
-> Check out the [Pro Boilerplate](https://gumroad.com/your-product-link) which includes:
-> - 🔐 **User Authentication** (NextAuth.js)
-> - 🛡️ **Admin Dashboard** (Ban players, delete scores)
-> - 🏢 **Multi-Tenancy** (Host multiple games on one instance)
-> - 🚫 **Anti-Cheat System** (HMAC signature verification)
 
 ## Features
 
@@ -27,7 +18,7 @@ A real-time leaderboard application built with Express, Socket.io, Redis, and Ne
 
 ### Admin/Config
 - Environment variables: MAX_SCORE, MIN_SCORE, UPDATE_INTERVAL
-- `DELETE /player/:id` - Admin wipe (auth optional)
+- `DELETE /player/:id` - Admin wipe (requires admin auth)
 
 ### Demo Mode
 - Auto-generate 5 fake players scoring every 10s on load
@@ -250,7 +241,7 @@ Get player rank and nearby 10 competitors.
 Get time-based leaderboards.
 
 ### DELETE /player/:id
-Admin endpoint to remove a player (auth optional).
+Admin endpoint to remove a player (requires admin auth).
 
 ## Rate Limiting
 

@@ -11,7 +11,7 @@ const inter = Inter({
 
 const appTitle = process.env.NEXT_PUBLIC_APP_NAME || '4 The Win Leaderboard';
 const appDescription = 'Real-time competitive leaderboard with live socket updates and instant ranking notifications.';
-const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://leaderboard-pro-demo.com';
+const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
 export const metadata: Metadata = {
   title: {
