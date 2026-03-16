@@ -13,6 +13,7 @@ redis = new Redis(redisUrl, {
   maxRetriesPerRequest: 3,
   lazyConnect: false,
   connectTimeout: 10000,
+  commandTimeout: 5000, // Abort hung commands after 5 seconds
   // Retry logic with exponential backoff
   retryStrategy: (times) => {
     // Max 10 attempts in specification, but we'll keep retrying indefinitely with backoff

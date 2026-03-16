@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const { redis } = require('../config/redis');
 const logger = require('../utils/logger');
+const { adminAuth } = require('../middleware/adminAuth');
+const { adminLimiter } = require('../middleware/rateLimiter');
 
 const CONFIG_KEY = 'config:app';
 
@@ -20,14 +22,7 @@ router.get('/', async (req, res) => {
 });
 
 // POST /config - Protected endpoint to update configuration
-router.post('/', async (req, res) => {
-    const adminKey = req.headers['x-admin-key'];
-
-    // Basic validation - in a real app this would be middleware
-    if (!adminKey || adminKey !== process.env.ADMIN_API_KEY) {
-        return res.status(403).json({ error: 'Unauthorized' });
-    }
-
+router.post('/', adminLimiter, adminAuth, async (req, res) => {
     const { gaMeasurementId } = req.body;
 
     try {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   XAxis,
   YAxis,
@@ -18,11 +18,33 @@ interface ScoreHistoryChartProps {
   height?: number;
 }
 
+function useChartColors() {
+  return useMemo(() => {
+    if (typeof window === 'undefined') {
+      return {
+        line: '#1d4ed8', grid: '#e5e7eb', axis: '#6b7280',
+        tooltipBg: '#ffffff', tooltipBorder: '#e5e7eb',
+      };
+    }
+    const style = getComputedStyle(document.documentElement);
+    return {
+      line: style.getPropertyValue('--chart-line').trim() || '#1d4ed8',
+      grid: style.getPropertyValue('--chart-grid').trim() || '#e5e7eb',
+      axis: style.getPropertyValue('--chart-axis').trim() || '#6b7280',
+      tooltipBg: style.getPropertyValue('--chart-tooltip-bg').trim() || '#ffffff',
+      tooltipBorder: style.getPropertyValue('--chart-tooltip-border').trim() || '#e5e7eb',
+    };
+  // Re-derive colors when component re-renders (theme may have changed)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+}
+
 export default function ScoreHistoryChart({ playerId, height = 200 }: ScoreHistoryChartProps) {
   const [history, setHistory] = useState<ScoreHistoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { getPlayerHistory } = useApi();
+  const chartColors = useChartColors();
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -56,14 +78,14 @@ export default function ScoreHistoryChart({ playerId, height = 200 }: ScoreHisto
   if (loading) {
     return (
       <div className="flex items-center justify-center" style={{ height }}>
-        <div className="animate-spin h-6 w-6 border-b-2 border-purple-500"></div>
+        <div className="animate-spin h-6 w-6 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center text-red-400 text-sm" style={{ height }}>
+      <div className="flex items-center justify-center text-error text-sm" style={{ height }}>
         {error}
       </div>
     );
@@ -71,7 +93,7 @@ export default function ScoreHistoryChart({ playerId, height = 200 }: ScoreHisto
 
   if (history.length === 0) {
     return (
-      <div className="flex items-center justify-center text-gray-500 text-sm" style={{ height }}>
+      <div className="flex items-center justify-center text-text-tertiary text-sm" style={{ height }}>
         No score history available yet
       </div>
     );
@@ -94,12 +116,12 @@ export default function ScoreHistoryChart({ playerId, height = 200 }: ScoreHisto
   return (
     <div>
       {/* Stats bar */}
-      <div className="flex justify-between text-xs text-gray-400 mb-2 px-1">
-        <span>High: <span className="text-green-400">{maxScore.toLocaleString()}</span></span>
-        <span>Avg: <span className="text-gray-300">{avgScore.toLocaleString()}</span></span>
-        <span>Low: <span className="text-red-400">{minScore.toLocaleString()}</span></span>
+      <div className="flex justify-between text-xs text-text-tertiary mb-2 px-1">
+        <span>High: <span className="text-success">{maxScore.toLocaleString()}</span></span>
+        <span>Avg: <span className="text-text-secondary">{avgScore.toLocaleString()}</span></span>
+        <span>Low: <span className="text-error">{minScore.toLocaleString()}</span></span>
         <span>
-          Trend: <span className={trend >= 0 ? 'text-green-400' : 'text-red-400'}>
+          Trend: <span className={trend >= 0 ? 'text-success' : 'text-error'}>
             {trend >= 0 ? '↑' : '↓'} {Math.abs(trend).toLocaleString()}
           </span>
         </span>
@@ -110,38 +132,38 @@ export default function ScoreHistoryChart({ playerId, height = 200 }: ScoreHisto
         <AreaChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
           <defs>
             <linearGradient id="scoreGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+              <stop offset="5%" stopColor={chartColors.line} stopOpacity={0.3} />
+              <stop offset="95%" stopColor={chartColors.line} stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-          <XAxis 
-            dataKey="name" 
-            stroke="#9ca3af" 
+          <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
+          <XAxis
+            dataKey="name"
+            stroke={chartColors.axis}
             fontSize={10}
             tickLine={false}
             interval="preserveStartEnd"
           />
-          <YAxis 
-            stroke="#9ca3af" 
+          <YAxis
+            stroke={chartColors.axis}
             fontSize={10}
             tickLine={false}
             tickFormatter={(value: number) => formatNumber(value)}
           />
-          <Tooltip 
-            contentStyle={{ 
-              backgroundColor: '#1f2937', 
-              border: '1px solid #374151',
+          <Tooltip
+            contentStyle={{
+              backgroundColor: chartColors.tooltipBg,
+              border: `1px solid ${chartColors.tooltipBorder}`,
               borderRadius: '8px',
               fontSize: '12px'
             }}
-            labelStyle={{ color: '#9ca3af' }}
+            labelStyle={{ color: chartColors.axis }}
             formatter={(value: number) => [value.toLocaleString(), 'Score']}
           />
-          <Area 
-            type="monotone" 
-            dataKey="score" 
-            stroke="#8b5cf6" 
+          <Area
+            type="monotone"
+            dataKey="score"
+            stroke={chartColors.line}
             strokeWidth={2}
             fill="url(#scoreGradient)"
           />
@@ -149,7 +171,7 @@ export default function ScoreHistoryChart({ playerId, height = 200 }: ScoreHisto
       </ResponsiveContainer>
 
       {/* Entry count */}
-      <div className="text-center text-xs text-gray-500 mt-1">
+      <div className="text-center text-xs text-text-tertiary mt-1">
         {history.length} score{history.length !== 1 ? 's' : ''} recorded
       </div>
     </div>

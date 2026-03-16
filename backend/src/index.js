@@ -43,6 +43,7 @@ const {
 const { errorHandler, asyncHandler } = require('./middleware/errorHandler');
 
 const { optionalAuth } = require('./middleware/auth');
+const { adminAuth } = require('./middleware/adminAuth');
 const { scoreSubmissionLimiter, apiLimiter } = require('./middleware/rateLimiter');
 const {
   addScore,
@@ -76,8 +77,16 @@ const { ADMIN_KEY_MIN_LENGTH, WEAK_ADMIN_KEYS } = require('./config/constants');
 const adminKey = process.env.ADMIN_API_KEY;
 
 if (process.env.NODE_ENV === 'production' && !adminKey) {
-  logger.warn('⚠️  SECURITY WARNING: ADMIN_API_KEY is not set in production! Admin endpoints are unprotected.');
-} else if (adminKey) {
+  logger.error('❌ FATAL: ADMIN_API_KEY must be set in production. Refusing to start.');
+  process.exit(1);
+}
+
+if (process.env.NODE_ENV === 'production' && !process.env.CORS_ORIGIN) {
+  logger.error('❌ FATAL: CORS_ORIGIN must be set in production. Refusing to start.');
+  process.exit(1);
+}
+
+if (adminKey) {
   if (adminKey.length < ADMIN_KEY_MIN_LENGTH) {
     logger.warn(`⚠️  SECURITY WARNING: ADMIN_API_KEY is too short (current: ${adminKey.length}, min: ${ADMIN_KEY_MIN_LENGTH}). Use a stronger key.`);
   }
@@ -125,6 +134,18 @@ app.use((req, res, next) => {
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:3000';
+  res.setHeader('Content-Security-Policy', [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' https://fonts.gstatic.com",
+    "img-src 'self' data: https:",
+    `connect-src 'self' ${corsOrigin} wss:`,
+    "frame-ancestors 'none'"
+  ].join('; '));
   next();
 });
 
@@ -197,44 +218,6 @@ app.use('/player', playerRouter);
 app.use('/admin', adminRouter);
 app.use('/config', require('./routes/configRoutes'));
 
-// Admin: Get Demo Status
-app.get('/admin/demo', optionalAuth, (req, res) => {
-  const { isDemoRunning } = require('./demo');
-  const demoInterval = parseInt(process.env.DEMO_INTERVAL) || 10000;
-
-  logger.info(`Admin check: Demo Active=${isDemoRunning()}, Interval=${demoInterval}`);
-
-  res.json({
-    success: true,
-    data: {
-      active: isDemoRunning(),
-      interval: demoInterval
-    }
-  });
-});
-
-// Admin: Toggle Demo Mode
-app.post('/admin/demo', optionalAuth, asyncHandler(async (req, res) => {
-  const { enabled } = req.body;
-  const { startDemoMode, stopDemoMode, isDemoRunning } = require('./demo');
-
-  logger.info(`Admin toggle request: ${enabled ? 'Enable' : 'Disable'} (Current: ${isDemoRunning()})`);
-
-  if (enabled && !isDemoRunning()) {
-    await startDemoMode();
-  } else if (!enabled && isDemoRunning()) {
-    stopDemoMode();
-  }
-
-  res.json({
-    success: true,
-    data: {
-      active: isDemoRunning(),
-      message: `Demo mode ${enabled ? 'started' : 'stopped'}`
-    }
-  });
-}));
-
 // Legacy routes for backward compatibility (optional, can be removed if frontend is updated)
 // Mapping old routes to new controllers if needed, or just relying on the new structure.
 // For now, we'll keep the old paths working by redirecting or re-mounting if strictly necessary,
@@ -252,8 +235,8 @@ app.post('/admin/demo', optionalAuth, asyncHandler(async (req, res) => {
 // To avoid breaking the frontend immediately, we can alias the old routes to the new routers.
 app.use('/', leaderboardRouter); // This mounts /top, /around, /daily, /weekly, /all at root level
 
-// Delete player (admin) - specific route after the router
-app.delete('/player/:id', apiLimiter, validatePlayerId, optionalAuth, asyncHandler(async (req, res) => {
+// Delete player (admin) - requires admin auth
+app.delete('/player/:id', apiLimiter, validatePlayerId, adminAuth, asyncHandler(async (req, res) => {
   const playerId = req.playerId;
 
   const success = await deletePlayer(playerId);

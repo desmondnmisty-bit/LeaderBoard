@@ -66,11 +66,11 @@ export default function PlayerProfileModal({ playerId, onClose }: PlayerProfileM
       onClick={onClose}
     >
       <div
-        className="bg-gray-900 sm:border border-gray-700 w-full h-full sm:h-auto sm:rounded-sm shadow-2xl sm:max-w-lg overflow-hidden flex flex-col sm:max-h-[90vh]"
+        className="bg-bg-primary sm:border border-border-color w-full h-full sm:h-auto sm:rounded-sm shadow-2xl sm:max-w-lg overflow-hidden flex flex-col sm:max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-900 to-blue-900 p-6">
+        <div className="bg-primary p-6">
           <div className="flex items-center gap-4">
             <PlayerAvatar
               avatarUrl={profile?.avatarUrl}
@@ -84,13 +84,13 @@ export default function PlayerProfileModal({ playerId, onClose }: PlayerProfileM
               {profile?.country && (
                 <div className="flex items-center gap-2 mt-1">
                   <CountryFlag country={profile.country} size="md" />
-                  <span className="text-gray-300 text-sm">{profile.country}</span>
+                  <span className="text-text-secondary text-sm">{profile.country}</span>
                 </div>
               )}
             </div>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-white transition p-2"
+              className="text-text-tertiary hover:text-text-primary transition p-2"
               aria-label="Close"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -104,12 +104,12 @@ export default function PlayerProfileModal({ playerId, onClose }: PlayerProfileM
         <div className="p-6 overflow-y-auto flex-1">
           {loading && (
             <div className="flex justify-center py-8">
-              <div className="animate-spin h-8 w-8 border-b-2 border-purple-500"></div>
+              <div className="animate-spin h-8 w-8 border-b-2 border-primary"></div>
             </div>
           )}
 
           {error && (
-            <div className="text-red-400 text-center py-4">
+            <div className="text-error text-center py-4">
               {error}
             </div>
           )}
@@ -119,14 +119,14 @@ export default function PlayerProfileModal({ playerId, onClose }: PlayerProfileM
               {/* Bio */}
               {profile?.bio && (
                 <div className="mb-6">
-                  <h3 className="text-sm font-medium text-gray-400 mb-2">About</h3>
-                  <p className="text-gray-200">{profile.bio}</p>
+                  <h3 className="text-sm font-medium text-text-tertiary mb-2">About</h3>
+                  <p className="text-text-primary">{profile.bio}</p>
                 </div>
               )}
 
               {/* Stats */}
               <div className="mb-6">
-                <h3 className="text-sm font-medium text-gray-400 mb-3">Rankings</h3>
+                <h3 className="text-sm font-medium text-text-tertiary mb-3">Rankings</h3>
                 <div className="grid grid-cols-3 gap-3">
                   <StatCard
                     label="All Time"
@@ -148,15 +148,15 @@ export default function PlayerProfileModal({ playerId, onClose }: PlayerProfileM
 
               {/* Score History Chart */}
               <div className="mb-6">
-                <h3 className="text-sm font-medium text-gray-400 mb-3">Score History</h3>
-                <div className="bg-gray-800 p-4">
+                <h3 className="text-sm font-medium text-text-tertiary mb-3">Score History</h3>
+                <div className="bg-bg-tertiary p-4">
                   <ScoreHistoryChart playerId={playerId} height={180} />
                 </div>
               </div>
 
               {/* Member Since */}
               {profile?.joinedAt && (
-                <div className="mt-4 text-center text-gray-500 text-sm">
+                <div className="mt-4 text-center text-text-tertiary text-sm">
                   Member since {new Date(parseInt(profile.joinedAt) > 1000000000000 ? parseInt(profile.joinedAt) : parseInt(profile.joinedAt) * 1000).toLocaleDateString()}
                 </div>
               )}
@@ -170,15 +170,15 @@ export default function PlayerProfileModal({ playerId, onClose }: PlayerProfileM
 
 function StatCard({ label, rank, score }: { label: string; rank?: number | null; score?: number }) {
   return (
-    <div className="bg-gray-800 p-3 text-center">
-      <div className="text-xs text-gray-400 mb-1">{label}</div>
+    <div className="bg-bg-tertiary p-3 text-center">
+      <div className="text-xs text-text-tertiary mb-1">{label}</div>
       {rank ? (
         <>
-          <div className="text-white font-bold">#{rank}</div>
-          <div className="text-xs text-gray-500">{score?.toLocaleString()} pts</div>
+          <div className="text-text-primary font-bold">#{rank}</div>
+          <div className="text-xs text-text-tertiary">{score?.toLocaleString()} pts</div>
         </>
       ) : (
-        <div className="text-gray-600">—</div>
+        <div className="text-text-tertiary">—</div>
       )}
     </div>
   );

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useLeaderboard } from '../lib/LeaderboardContext';
 import { useSocket } from '../hooks/useSocket';
+import { usePlayerRoom } from '../hooks/usePlayerRoom';
 import TimeRangeTabs from './TimeRangeTabs';
 import ScoreSubmissionForm from './ScoreSubmissionForm';
 import PlayerSearch from './PlayerSearch';
@@ -14,9 +15,10 @@ import { ToastProvider, useToast } from './Toast';
 // Internal component to use toast hook
 function LeaderboardContent() {
   const { players, activeTab, setActiveTab, updatePlayers, loading, error } = useLeaderboard();
-  const { socket, isConnected, joinPlayerRoom } = useSocket();
+  const { socket, isConnected } = useSocket();
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPlayerId, setCurrentPlayerId] = useState<string>('');
+  usePlayerRoom(currentPlayerId || null);
   const { addToast } = useToast();
 
   useEffect(() => {
@@ -54,11 +56,6 @@ function LeaderboardContent() {
     }
   }, [socket, isConnected, activeTab, updatePlayers, currentPlayerId, addToast]);
 
-  useEffect(() => {
-    if (currentPlayerId && isConnected) {
-      joinPlayerRoom(currentPlayerId);
-    }
-  }, [currentPlayerId, isConnected, joinPlayerRoom]);
 
   return (
     <div className="space-y-6">
