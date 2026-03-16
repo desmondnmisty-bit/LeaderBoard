@@ -69,14 +69,14 @@ const startDemoMode = async () => {
         // Only call once - addScore handles all time ranges internally
         const result = await addScore(player.id, player.name, score, metadata);
 
-        // Log activity
+        // Log activity (fire-and-forget: don't block demo loop)
         addActivity({
-          type: 'demo', // Distinct type for visibility
+          type: 'demo',
           playerId: player.id,
           playerName: player.name,
           score,
           rank: result.rank,
-        });
+        }).catch(() => {});
       }
       logger.debug('Demo mode: Score generation complete');
     } catch (error) {

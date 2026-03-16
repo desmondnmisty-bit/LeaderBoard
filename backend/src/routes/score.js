@@ -63,14 +63,14 @@ router.post('/', scoreSubmissionLimiter, validateScoreSubmission, asyncHandler(a
   // Add score - this updates all time ranges (all/daily/weekly) in one call
   const result = await addScore(playerId, playerName, score, metadata);
 
-  // Log activity for admin dashboard
+  // Log activity for admin dashboard (fire-and-forget: don't block the response)
   addActivity({
     type: 'score',
     playerId,
     playerName,
     score,
     rank: result.rank
-  });
+  }).catch(() => {}); // addActivity handles its own errors; ignore here
 
   res.status(201).json({
     success: true,

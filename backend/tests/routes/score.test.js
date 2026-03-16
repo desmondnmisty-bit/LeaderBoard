@@ -8,7 +8,7 @@ jest.mock('../../src/utils/leaderboard', () => ({
 }));
 
 jest.mock('../../src/routes/admin', () => ({
-  addActivity: jest.fn(),
+  addActivity: jest.fn().mockResolvedValue(undefined),
 }));
 
 jest.mock('../../src/middleware/validation', () => ({

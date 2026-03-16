@@ -18,6 +18,13 @@ html.light {
   --color-text-tertiary: #6b7280; /* Darkened from #9ca3af (Gray 500) */
   --color-border: #e5e7eb;
   --font-family: 'Inter', sans-serif;
+
+  /* Chart-specific (used by Recharts which requires hex values) */
+  --chart-line: #1d4ed8;
+  --chart-grid: #e5e7eb;
+  --chart-axis: #6b7280;
+  --chart-tooltip-bg: #ffffff;
+  --chart-tooltip-border: #e5e7eb;
 }
 
 /* Dark Theme */
@@ -34,6 +41,13 @@ html.dark {
   --color-text-secondary: #e5e7eb; /* Lightened from #d1d5db (Gray 200) */
   --color-text-tertiary: #d1d5db; /* Lightened from #9ca3af (Gray 300) */
   --color-border: #4b5563; /* Lightened border */
+
+  /* Chart-specific */
+  --chart-line: #60a5fa;
+  --chart-grid: #374151;
+  --chart-axis: #9ca3af;
+  --chart-tooltip-bg: #1f2937;
+  --chart-tooltip-border: #374151;
 }
 
 /* High Contrast Theme */
@@ -50,6 +64,13 @@ html.high-contrast {
   --color-text-secondary: #1a1a1a;
   --color-text-tertiary: #333333;
   --color-border: #000000;
+
+  /* Chart-specific */
+  --chart-line: #0000ee;
+  --chart-grid: #000000;
+  --chart-axis: #333333;
+  --chart-tooltip-bg: #ffffff;
+  --chart-tooltip-border: #000000;
 }
 
 @layer base {

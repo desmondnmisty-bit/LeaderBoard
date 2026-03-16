@@ -2,6 +2,15 @@ import { useCallback, useMemo } from 'react';
 import { ScoreSubmission, ApiResponse, Player, TimeRange } from '../lib/types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const FETCH_TIMEOUT_MS = 10_000;
+
+function handleFetchError(error: unknown, context: string): ApiResponse {
+  if (error instanceof DOMException && error.name === 'TimeoutError') {
+    return { success: false, error: { message: 'Request timed out', code: 408 } };
+  }
+  console.error(`API Error (${context}):`, error);
+  return { success: false, error: { message: 'Network error', code: 500 } };
+}
 
 /**
  * Custom hook for API calls with memoized functions
@@ -12,10 +21,9 @@ export function useApi() {
     try {
       const response = await fetch(`${API_BASE_URL}/score`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
+        signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
       });
 
       const result = await response.json();
@@ -29,11 +37,7 @@ export function useApi() {
 
       return result;
     } catch (error) {
-      console.error('API Error (submitScore):', error);
-      return {
-        success: false,
-        error: { message: 'Network error', code: 500 }
-      };
+      return handleFetchError(error, 'submitScore');
     }
   }, []);
 
@@ -49,7 +53,9 @@ export function useApi() {
         timeRange,
       });
 
-      const response = await fetch(`${API_BASE_URL}/leaderboard/top/${limit}?${params}`);
+      const response = await fetch(`${API_BASE_URL}/leaderboard/top/${limit}?${params}`, {
+        signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      });
       const result = await response.json();
 
       if (!response.ok) {
@@ -61,18 +67,16 @@ export function useApi() {
 
       return result;
     } catch (error) {
-      console.error('API Error (getTopPlayers):', error);
-      return {
-        success: false,
-        error: { message: 'Network error', code: 500 }
-      };
+      return handleFetchError(error, 'getTopPlayers');
     }
   }, []);
 
   const getPlayerRank = useCallback(async (playerId: string, timeRange: TimeRange = 'all'): Promise<ApiResponse> => {
     try {
       const params = new URLSearchParams({ timeRange });
-      const response = await fetch(`${API_BASE_URL}/leaderboard/around/${playerId}?${params}`);
+      const response = await fetch(`${API_BASE_URL}/leaderboard/around/${playerId}?${params}`, {
+        signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      });
       const result = await response.json();
 
       if (!response.ok) {
@@ -84,11 +88,7 @@ export function useApi() {
 
       return result;
     } catch (error) {
-      console.error('API Error (getPlayerRank):', error);
-      return {
-        success: false,
-        error: { message: 'Network error', code: 500 }
-      };
+      return handleFetchError(error, 'getPlayerRank');
     }
   }, []);
 
@@ -111,7 +111,9 @@ export function useApi() {
         timeRange,
       });
 
-      const response = await fetch(`${API_BASE_URL}/leaderboard/around/${playerId}?${params}`);
+      const response = await fetch(`${API_BASE_URL}/leaderboard/around/${playerId}?${params}`, {
+        signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      });
       const result = await response.json();
 
       if (!response.ok) {
@@ -123,17 +125,15 @@ export function useApi() {
 
       return result;
     } catch (error) {
-      console.error('API Error (getPlayersAround):', error);
-      return {
-        success: false,
-        error: { message: 'Network error', code: 500 }
-      };
+      return handleFetchError(error, 'getPlayersAround');
     }
   }, []);
 
   const getPlayerProfile = useCallback(async (playerId: string): Promise<ApiResponse> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/player/${playerId}/profile`);
+      const response = await fetch(`${API_BASE_URL}/player/${playerId}/profile`, {
+        signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      });
       const result = await response.json();
 
       if (!response.ok) {
@@ -145,17 +145,15 @@ export function useApi() {
 
       return result;
     } catch (error) {
-      console.error('API Error (getPlayerProfile):', error);
-      return {
-        success: false,
-        error: { message: 'Network error', code: 500 }
-      };
+      return handleFetchError(error, 'getPlayerProfile');
     }
   }, []);
 
   const getPlayerStats = useCallback(async (playerId: string): Promise<ApiResponse> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/player/${playerId}/stats`);
+      const response = await fetch(`${API_BASE_URL}/player/${playerId}/stats`, {
+        signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      });
       const result = await response.json();
 
       if (!response.ok) {
@@ -167,11 +165,7 @@ export function useApi() {
 
       return result;
     } catch (error) {
-      console.error('API Error (getPlayerStats):', error);
-      return {
-        success: false,
-        error: { message: 'Network error', code: 500 }
-      };
+      return handleFetchError(error, 'getPlayerStats');
     }
   }, []);
 
@@ -186,7 +180,9 @@ export function useApi() {
         offset: offset.toString(),
       });
 
-      const response = await fetch(`${API_BASE_URL}/player/${playerId}/history?${params}`);
+      const response = await fetch(`${API_BASE_URL}/player/${playerId}/history?${params}`, {
+        signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      });
       const result = await response.json();
 
       if (!response.ok) {
@@ -198,11 +194,7 @@ export function useApi() {
 
       return result;
     } catch (error) {
-      console.error('API Error (getPlayerHistory):', error);
-      return {
-        success: false,
-        error: { message: 'Network error', code: 500 }
-      };
+      return handleFetchError(error, 'getPlayerHistory');
     }
   }, []);
 
@@ -210,6 +202,7 @@ export function useApi() {
     try {
       const response = await fetch(`${API_BASE_URL}/player/${playerId}`, {
         method: 'DELETE',
+        signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
       });
 
       const result = await response.json();
@@ -223,11 +216,7 @@ export function useApi() {
 
       return result;
     } catch (error) {
-      console.error('API Error (deletePlayer):', error);
-      return {
-        success: false,
-        error: { message: 'Network error', code: 500 }
-      };
+      return handleFetchError(error, 'deletePlayer');
     }
   }, []);
 

@@ -48,7 +48,7 @@ interface LeaderboardData {
 }
 
 export default function AdminDashboard() {
-  const [adminKey, setAdminKey] = useState(process.env.NEXT_PUBLIC_ADMIN_API_KEY || '');
+  const [adminKey, setAdminKey] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeTab, setActiveTab] = useState<'overview' | 'players' | 'activity' | 'settings'>('overview');
   const [stats, setStats] = useState<AdminStats | null>(null);
@@ -66,21 +66,18 @@ export default function AdminDashboard() {
   const [demoStatus, setDemoStatus] = useState<{ active: boolean; interval: number } | null>(null);
   const [demoLoading, setDemoLoading] = useState(false);
 
-  // Check for stored admin key on mount
+  // Check for stored admin key on mount (with 1-hour expiry)
   useEffect(() => {
     const storedKey = localStorage.getItem('adminKey');
-    const envKey = process.env.NEXT_PUBLIC_ADMIN_API_KEY;
+    const storedTs = localStorage.getItem('adminKeyTimestamp');
+    const ONE_HOUR = 60 * 60 * 1000;
 
-    if (envKey) {
-      // If we have an env key, prefer it, especially if it's different from stored
-      if (storedKey !== envKey) {
-        localStorage.setItem('adminKey', envKey);
-      }
-      setAdminKey(envKey);
-      setIsAuthenticated(true);
-    } else if (storedKey) {
+    if (storedKey && storedTs && (Date.now() - parseInt(storedTs)) < ONE_HOUR) {
       setAdminKey(storedKey);
       setIsAuthenticated(true);
+    } else {
+      localStorage.removeItem('adminKey');
+      localStorage.removeItem('adminKeyTimestamp');
     }
   }, []);
 
@@ -265,6 +262,7 @@ export default function AdminDashboard() {
 
       if (response.ok) {
         localStorage.setItem('adminKey', adminKey);
+        localStorage.setItem('adminKeyTimestamp', Date.now().toString());
         setIsAuthenticated(true);
       } else {
         const data = await response.json();
@@ -279,6 +277,7 @@ export default function AdminDashboard() {
 
   const handleLogout = () => {
     localStorage.removeItem('adminKey');
+    localStorage.removeItem('adminKeyTimestamp');
     setAdminKey('');
     setIsAuthenticated(false);
     setStats(null);

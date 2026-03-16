@@ -1,8 +1,14 @@
 const optionalAuth = (req, res, next) => {
   const adminApiKey = process.env.ADMIN_API_KEY;
 
-  // If no admin key is set, allow all requests (open access for MVP)
+  // If no admin key is set: block in production, allow in development
   if (!adminApiKey) {
+    if (process.env.NODE_ENV === 'production') {
+      return res.status(503).json({
+        success: false,
+        error: { message: 'Server misconfigured: admin key not set', code: 'ADMIN_KEY_MISSING' }
+      });
+    }
     return next();
   }
 

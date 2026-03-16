@@ -10,23 +10,29 @@ const { adminAuth } = require('../middleware/adminAuth');
 const { adminLimiter } = require('../middleware/rateLimiter');
 const { asyncHandler } = require('../middleware/errorHandler');
 const { getCurrentTimeKeys, deletePlayer, getTopPlayers } = require('../utils/leaderboard');
+const { startDemoMode, stopDemoMode, isDemoRunning } = require('../demo');
+const logger = require('../utils/logger');
 
 // Apply admin auth and rate limiting to all routes
 router.use(adminLimiter);
 router.use(adminAuth);
 
-// Store recent activity in memory (last 100 entries)
-const recentActivity = [];
+const ACTIVITY_KEY = 'activity:recent';
 const MAX_ACTIVITY_ENTRIES = 100;
+const ACTIVITY_TTL_SECONDS = 7 * 24 * 60 * 60; // 7 days
 
-// Function to add activity (exported for use in score submission)
-const addActivity = (activity) => {
-  recentActivity.unshift({
-    ...activity,
-    timestamp: new Date().toISOString()
-  });
-  if (recentActivity.length > MAX_ACTIVITY_ENTRIES) {
-    recentActivity.pop();
+// Persist activity to Redis list (survives restarts)
+const addActivity = async (activity) => {
+  try {
+    const entry = JSON.stringify({
+      ...activity,
+      timestamp: new Date().toISOString()
+    });
+    await redis.lpush(ACTIVITY_KEY, entry);
+    await redis.ltrim(ACTIVITY_KEY, 0, MAX_ACTIVITY_ENTRIES - 1);
+    await redis.expire(ACTIVITY_KEY, ACTIVITY_TTL_SECONDS);
+  } catch (error) {
+    logger.error('Failed to persist activity:', error);
   }
 };
 
@@ -54,11 +60,13 @@ router.get('/stats', asyncHandler(async (req, res) => {
   const usedMemoryMatch = memoryInfo.match(/used_memory_human:([^\r\n]+)/);
   const usedMemory = usedMemoryMatch ? usedMemoryMatch[1] : 'N/A';
 
-  // Count scores submitted today (from activity log)
+  // Count scores submitted today (from persisted activity log)
   const today = new Date().toISOString().split('T')[0];
-  const scoresToday = recentActivity.filter(a =>
-    a.type === 'score' && a.timestamp.startsWith(today)
-  ).length;
+  const allActivity = await redis.lrange(ACTIVITY_KEY, 0, MAX_ACTIVITY_ENTRIES - 1);
+  const scoresToday = allActivity
+    .map(item => { try { return JSON.parse(item); } catch { return null; } })
+    .filter(a => a && a.type === 'score' && a.timestamp && a.timestamp.startsWith(today))
+    .length;
 
   res.json({
     success: true,
@@ -139,7 +147,7 @@ router.delete('/player/:id', asyncHandler(async (req, res) => {
   }
 
   // Log activity
-  addActivity({
+  await addActivity({
     type: 'delete',
     playerId,
     action: 'Player deleted by admin'
@@ -236,7 +244,7 @@ router.post('/reset/:timeRange', asyncHandler(async (req, res) => {
   }
 
   // Log activity
-  addActivity({
+  await addActivity({
     type: 'reset',
     timeRange,
     playersAffected,
@@ -260,12 +268,18 @@ router.post('/reset/:timeRange', asyncHandler(async (req, res) => {
 router.get('/activity', asyncHandler(async (req, res) => {
   const limit = Math.min(parseInt(req.query.limit) || 50, 100);
 
+  const [raw, total] = await Promise.all([
+    redis.lrange(ACTIVITY_KEY, 0, limit - 1),
+    redis.llen(ACTIVITY_KEY)
+  ]);
+
+  const activity = raw.map(item => {
+    try { return JSON.parse(item); } catch { return null; }
+  }).filter(Boolean);
+
   res.json({
     success: true,
-    data: {
-      activity: recentActivity.slice(0, limit),
-      total: recentActivity.length
-    }
+    data: { activity, total }
   });
 }));
 
@@ -308,6 +322,45 @@ router.get('/leaderboards', asyncHandler(async (req, res) => {
         topPlayers: weeklyPlayers,
         expiresIn: '7 days'
       }
+    }
+  });
+}));
+
+/**
+ * GET /admin/demo
+ * Get demo mode status
+ */
+router.get('/demo', (req, res) => {
+  const demoInterval = parseInt(process.env.DEMO_INTERVAL) || 10000;
+  logger.info(`Admin check: Demo Active=${isDemoRunning()}, Interval=${demoInterval}`);
+  res.json({
+    success: true,
+    data: {
+      active: isDemoRunning(),
+      interval: demoInterval
+    }
+  });
+});
+
+/**
+ * POST /admin/demo
+ * Toggle demo mode on or off
+ */
+router.post('/demo', asyncHandler(async (req, res) => {
+  const { enabled } = req.body;
+  logger.info(`Admin toggle request: ${enabled ? 'Enable' : 'Disable'} (Current: ${isDemoRunning()})`);
+
+  if (enabled && !isDemoRunning()) {
+    await startDemoMode();
+  } else if (!enabled && isDemoRunning()) {
+    stopDemoMode();
+  }
+
+  res.json({
+    success: true,
+    data: {
+      active: isDemoRunning(),
+      message: `Demo mode ${enabled ? 'started' : 'stopped'}`
     }
   });
 }));

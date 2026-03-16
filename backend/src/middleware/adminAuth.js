@@ -9,11 +9,16 @@ const adminAuth = (req, res, next) => {
   const adminApiKey = process.env.ADMIN_API_KEY;
   const ip = req.ip || req.connection.remoteAddress;
 
-  // If no admin key is configured, allow access (development mode)
+  // If no admin key is configured: block in production, allow in development
   if (!adminApiKey) {
     if (process.env.NODE_ENV === 'production') {
-      logger.warn(`[ADMIN] Unprotected admin access attempt from ${ip} (ADMIN_API_KEY not set)`);
+      logger.error(`[ADMIN] Rejected: ADMIN_API_KEY not set in production, request from ${ip}`);
+      return res.status(503).json({
+        success: false,
+        error: { message: 'Server misconfigured: admin key not set', code: 'ADMIN_KEY_MISSING' }
+      });
     }
+    logger.warn(`[ADMIN] DEV MODE: No ADMIN_API_KEY set, allowing access from ${ip}`);
     return next();
   }
 
