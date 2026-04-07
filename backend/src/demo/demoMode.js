@@ -1,5 +1,4 @@
 const { addScore } = require('../utils/leaderboard');
-const { addActivity } = require('../routes/admin');
 const { redis } = require('../config/redis');
 const logger = require('../utils/logger');
 
@@ -70,6 +69,7 @@ const startDemoMode = async () => {
         const result = await addScore(player.id, player.name, score, metadata);
 
         // Log activity (fire-and-forget: don't block demo loop)
+                const { addActivity } = require('../routes/admin');
         addActivity({
           type: 'demo',
           playerId: player.id,
